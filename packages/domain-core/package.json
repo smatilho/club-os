@@ -1,0 +1,13 @@
+{
+  "name": "@club-os/domain-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/domain-core",
+    "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/domain-core",
+    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/domain-core",
+    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/domain-core"
+  }
+}

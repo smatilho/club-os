@@ -1,0 +1,13 @@
+{
+  "name": "@club-os/ui-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/ui-kit",
+    "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/ui-kit",
+    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/ui-kit",
+    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/ui-kit"
+  }
+}

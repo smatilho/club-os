@@ -1,0 +1,13 @@
+{
+  "name": "@club-os/auth-rbac",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/auth-rbac",
+    "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/auth-rbac",
+    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/auth-rbac",
+    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/auth-rbac"
+  }
+}

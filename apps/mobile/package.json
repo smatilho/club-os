@@ -1,0 +1,12 @@
+{
+  "name": "@club-os/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node ../../scripts/ci/not-implemented.mjs dev @club-os/mobile",
+    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/mobile",
+    "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/mobile",
+    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/mobile",
+    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/mobile"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@club-os/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node ../../scripts/ci/not-implemented.mjs dev @club-os/api",
+    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/api",
+    "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/api",
+    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/api",
+    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/api"
+  }
+}
