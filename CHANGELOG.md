@@ -30,3 +30,14 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
   - placeholder script checks
   - provider-SDK boundary checks (allowed only in `infrastructure`)
   - schema and documentation consistency tests
+
+### Phase 0 — Foundation
+- `apps/web`: Next.js App Router with `/public`, `/member`, `/admin` route areas and per-area layouts.
+- `services/api`: Hono-based modular monolith skeleton with module loader, health module, and request context.
+- Platform abstraction ports: `DatabasePort`, `ObjectStoragePort`, `QueuePort`, `AuthClaimsPort`, `ObservabilityPort`.
+- `packages/domain-core`: `Result<T,E>` type, branded IDs (`OrgId`, `UserId`, `MembershipId`).
+- `packages/auth-rbac`: policy engine types and `evaluatePolicy` matching `policy-engine-contract.md`, `SessionContext`.
+- `packages/module-registry`: full-schema `validateModuleManifest`, `ModuleRegistry` class.
+- TypeScript typechecking enabled across all packages and services.
+- Vitest unit tests for domain-core, auth-rbac, module-registry, and API health endpoint (28 tests).
+- Web route map doc (`docs/architecture/web-route-map.md`).

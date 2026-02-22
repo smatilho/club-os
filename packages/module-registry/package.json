@@ -5,9 +5,13 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/module-registry",
+    "build": "tsc",
     "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/module-registry",
-    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/module-registry",
-    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/module-registry"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
   }
 }

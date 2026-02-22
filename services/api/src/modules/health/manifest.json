@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "name": "health",
+  "version": "0.1.0",
+  "displayName": "Health Check",
+  "description": "System health and readiness endpoints for monitoring",
+  "owner": "platform",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/health",
+      "visibility": "internal"
+    }
+  ],
+  "capabilities": [
+    "health.read"
+  ]
+}

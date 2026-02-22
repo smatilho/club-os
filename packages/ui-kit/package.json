@@ -5,9 +5,12 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "build": "node ../../scripts/ci/scaffold-check.mjs build @club-os/ui-kit",
+    "build": "tsc",
     "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/ui-kit",
     "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/ui-kit",
-    "typecheck": "node ../../scripts/ci/scaffold-check.mjs typecheck @club-os/ui-kit"
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
   }
 }

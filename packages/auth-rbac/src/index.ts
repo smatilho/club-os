@@ -22,6 +22,12 @@ export interface PolicyContext {
   capabilities: Capability[];
 }
 
-export function hasCapability(context: PolicyContext, capability: Capability): boolean {
+export function hasCapability(
+  context: PolicyContext,
+  capability: Capability,
+): boolean {
   return context.capabilities.includes(capability);
 }
+
+export * from "./policy-engine";
+export * from "./session";
