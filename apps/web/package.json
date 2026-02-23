@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "node ../../scripts/ci/scaffold-check.mjs lint @club-os/web",
-    "test": "node ../../scripts/ci/scaffold-check.mjs test @club-os/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -15,8 +16,12 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.3"
+    "jsdom": "^28.1.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
   }
 }

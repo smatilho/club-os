@@ -9,10 +9,14 @@
     "dev": "node scripts/ci/not-implemented.mjs dev root",
     "lint": "node scripts/ci/check-required-files.mjs && node scripts/ci/check-no-placeholder-scripts.mjs && node scripts/arch/check-boundary-imports.mjs && corepack pnpm -r lint",
     "test": "corepack pnpm -r test && node --test scripts/ci/*.test.mjs",
+    "test:web:e2e": "playwright test tests/e2e",
+    "test:web:e2e:headed": "playwright test tests/e2e --headed",
+    "test:web:e2e:install": "playwright install chromium",
     "typecheck": "corepack pnpm -r typecheck && node scripts/ci/check-json-files.mjs",
     "check": "corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "turbo": "^2.4.2",
     "typescript": "^5.7.3"
   }

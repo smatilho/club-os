@@ -31,3 +31,5 @@ export function hasCapability(
 
 export * from "./policy-engine";
 export * from "./session";
+export * from "./roles";
+export * from "./audit";

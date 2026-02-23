@@ -29,11 +29,13 @@ Generate production-ready implementation from this blueprint while preserving:
   - `/member/*`
   - `/admin/*`
 - UI kit integration
+- web UI test baseline (`Vitest + React Testing Library`) and Playwright route smoke tests
 
 4. Stabilization:
 - harden API contracts used by all clients
 - publish typed client SDK and API schema
 - complete tenant configuration and module inventory flows
+- expand UI/e2e coverage for cross-route regressions as modules land
 
 5. Future mobile pipeline (deferred):
 - design and implement private app generation/release flow per tenant

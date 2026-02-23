@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@club-os/auth-rbac": "workspace:*",
+    "@club-os/domain-core": "workspace:*",
     "hono": "^4.7.0"
   },
   "devDependencies": {

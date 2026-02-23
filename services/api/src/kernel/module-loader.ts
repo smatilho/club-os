@@ -1,5 +1,6 @@
 import type { Hono } from "hono";
 import { healthRoutes } from "../modules/health/routes";
+import { identityRoutes } from "../modules/identity/routes";
 
 export interface ModuleDefinition {
   name: string;
@@ -12,6 +13,11 @@ const modules: ModuleDefinition[] = [
     name: "health",
     version: "0.1.0",
     register: healthRoutes,
+  },
+  {
+    name: "identity",
+    version: "0.1.0",
+    register: identityRoutes,
   },
 ];
 

@@ -46,6 +46,8 @@ Required artifacts:
 - RBAC seed roles + capability mappings.
 - Policy decision tests.
 - Tenant isolation tests for identity queries.
+- `apps/web` route layout/page tests via `Vitest + React Testing Library`.
+- Playwright route-area auth-guard smoke tests for `/public`, `/member`, `/admin`.
 
 Review gate:
 - Architecture review:
@@ -64,6 +66,8 @@ Implementation goals:
 Required artifacts:
 - Content schema and publish workflow tests.
 - Public caching/invalidations documented.
+- Component and page tests for content admin/public render states.
+- Playwright publish/navigation regression coverage for content flows.
 
 Review gate:
 - Architecture review:
@@ -82,6 +86,7 @@ Required artifacts:
 - Reservation state-machine tests.
 - Payment idempotency tests.
 - Failure handling matrix (timeout, duplicate webhook, partial failure).
+- Playwright booking + admin override end-to-end scenarios.
 
 Review gate:
 - Architecture review:
@@ -98,6 +103,7 @@ Implementation goals:
 Required artifacts:
 - Moderation policy checks.
 - Abuse/report handling workflow.
+- Moderation UI regression tests and Playwright moderation flow coverage.
 
 Review gate:
 - Architecture review:
@@ -117,6 +123,7 @@ Required artifacts:
 - Self-host runbook.
 - Upgrade/migration guide.
 - Compatibility matrix by deployment profile.
+- Visual regression or screenshot-baseline coverage for core web route areas.
 
 Review gate:
 - Architecture review:
@@ -146,6 +153,11 @@ Review gate:
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm test`
+
+## UI Test Commands (incremental rollout)
+- `pnpm --filter @club-os/web test` (Vitest + React Testing Library)
+- `pnpm test:web:e2e` (Playwright route-area/browser flows; CI smoke job runs non-blocking during rollout)
+- `pnpm test:web:e2e:install` (install Playwright browser runtime locally/CI)
 
 ## Phase Completion Template
 Include this in each phase PR:

@@ -1,0 +1,72 @@
+{
+  "name": "identity",
+  "schemaVersion": "1.0",
+  "version": "0.1.0",
+  "displayName": "Identity",
+  "description": "Users, organizations, memberships, and role assignments.",
+  "owner": "platform",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/organizations/:id",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/memberships",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/memberships",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/memberships/:id",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/memberships/:id/roles",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/identity/memberships/:id/roles/:role",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "membership.read",
+    "membership.manage"
+  ],
+  "dependencies": [],
+  "events": [
+    {
+      "name": "identity.membership.created",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "identity.role.assigned",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "identity.role.removed",
+      "direction": "publishes",
+      "version": "0.1.0"
+    }
+  ]
+}
