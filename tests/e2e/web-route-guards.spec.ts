@@ -15,7 +15,6 @@ async function addMockSessionCookie(page: Page, session: MockSession) {
       name: "mock-session",
       value: encodeURIComponent(JSON.stringify(session)),
       url: BASE_URL,
-      path: "/",
     },
   ]);
 }
