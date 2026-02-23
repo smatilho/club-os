@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Context, MiddlewareHandler } from "hono";
-import { authMiddleware } from "../../kernel/auth-middleware";
 import { mockAuthMiddleware } from "../../kernel/mock-auth-middleware";
 import { requireCapability } from "../../kernel/policy-middleware";
+import { getDefaultAuthHandler } from "../../kernel/auth-handler";
 import { IdentityService } from "./service";
 import {
   TENANT_ROLE_NAMES,
@@ -24,7 +24,8 @@ function getIdentityAuthHandler(options?: IdentityRoutesOptions): MiddlewareHand
   if (options?.authHandler) {
     return options.authHandler;
   }
-  return options?.auth === "mock" ? mockAuthMiddleware : authMiddleware;
+  if (options?.auth === "mock") return mockAuthMiddleware;
+  return getDefaultAuthHandler();
 }
 
 function isTenantRoleName(value: unknown): value is TenantRoleName {

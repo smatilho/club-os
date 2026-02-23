@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "name": "org-profile",
+  "version": "0.1.0",
+  "displayName": "Organization Profile",
+  "description": "Tenant branding and profile settings for public and admin experiences",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "public",
+      "path": "/api/org-profile/public/theme",
+      "visibility": "public"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/org-profile/theme",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/settings/branding",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "settings.read",
+    "settings.manage"
+  ]
+}

@@ -1,6 +1,8 @@
 import type { Hono } from "hono";
 import { healthRoutes } from "../modules/health/routes";
 import { identityRoutes } from "../modules/identity/routes";
+import { contentRoutes } from "../modules/content/routes";
+import { orgProfileRoutes } from "../modules/org-profile/routes";
 
 export interface ModuleDefinition {
   name: string;
@@ -18,6 +20,16 @@ const modules: ModuleDefinition[] = [
     name: "identity",
     version: "0.1.0",
     register: identityRoutes,
+  },
+  {
+    name: "content",
+    version: "0.1.0",
+    register: contentRoutes,
+  },
+  {
+    name: "org-profile",
+    version: "0.1.0",
+    register: orgProfileRoutes,
   },
 ];
 

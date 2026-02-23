@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "name": "content-cms",
+  "version": "0.1.0",
+  "displayName": "Content CMS",
+  "description": "Draft/publish content management for public and member-facing pages",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "public",
+      "path": "/api/content/public/pages/*",
+      "visibility": "public"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/content/pages",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/content/pages/:id",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/content/pages/:id/publish",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "public",
+      "path": "/public/[...slug]",
+      "visibility": "public"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/content",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/content/new",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/content/[id]",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "content.read",
+    "content.write",
+    "content.publish"
+  ],
+  "events": [
+    {
+      "name": "content.page.published",
+      "direction": "publishes",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -72,3 +72,42 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
   - Identity service tests (15 tests including tenant isolation).
   - Identity route tests (11 tests: auth, authz, audit logging, tenant role validation).
   - Web route/page tests (7 tests via Vitest + React Testing Library).
+
+### Phase 2 — Content CMS + Public Area + Branding
+- `packages/domain-core`: `ContentPage`, `ContentPageDraft`, `ContentPagePublished` entities with branded `ContentPageId`.
+  - Slug validation: lowercase, `[a-z0-9-]+` segments, nested paths, reserved slug `index` disallowed.
+- `services/api`: Runnable Hono Node server (`server.ts` + `@hono/node-server`).
+  - Content module (`/api/content/*`): draft/publish lifecycle, public read, management CRUD.
+    - `POST /api/content/pages` (content.write), `PATCH /api/content/pages/:id` (content.write), `POST /api/content/pages/:id/publish` (content.publish).
+    - `GET /api/content/public/pages/:slugPath`: unauthenticated, serves published snapshot only, supports nested slugs.
+    - Publish copies current draft to published snapshot; post-publish draft edits do not affect public.
+    - Slug uniqueness enforced per organization (draft collision rejection).
+  - Org-profile module (`/api/org-profile/*`): tenant branding/theme storage.
+    - `GET /api/org-profile/theme` (settings.read), `PUT /api/org-profile/theme` (settings.manage).
+    - `GET /api/org-profile/public/theme`: unauthenticated, returns tenant theme for public layout.
+    - `ThemeSettings`: brandName, logoUrl, primaryColor, accentColor, surfaceColor, textColor with hex validation.
+  - Environment-aware auth handler (`getDefaultAuthHandler`): mock auth in dev/test, real auth in production.
+  - Content and org-profile module manifests (`manifest.json`) conforming to module-manifest.schema.json.
+  - Dev default org strategy for public endpoint tenant resolution (documented, Phase 3/5 hardening item).
+- `apps/web`: Public content rendering and admin CMS.
+  - `/public/[...slug]`: dynamic CMS content pages fetched from API, `notFound()` for unpublished.
+  - `/public` layout: applies tenant branding CSS variables (`--brand-primary`, `--brand-accent`, `--brand-surface`, `--brand-text`) from theme API with fallback defaults.
+  - `/admin/content`: page list with status badges, slug, updated time, create button.
+  - `/admin/content/new`: create form with auto-slug from title, validation error display.
+  - `/admin/content/[id]`: edit draft form, publish button, published metadata display, save/publish success feedback.
+  - `/admin/settings/branding`: theme form with color pickers, live preview block.
+  - Admin layout: dark utilitarian design with navigation links (Dashboard, Content, Branding).
+  - API proxy route (`/api/cms/[...path]`): server-side proxy forwarding mock session auth headers to backend API.
+  - Server-side API client (`lib/api-client.ts`): `apiFetch` (authenticated) and `publicApiFetch` (unauthenticated) with `no-store` caching.
+- Docs:
+  - `docs/architecture/public-caching-invalidation.md`: correctness-first caching strategy, Phase 3/5 optimization plan.
+  - `docs/architecture/web-route-map.md`: updated with all Phase 2 web and API routes.
+- Tests: 165 total in `pnpm check` (14 web, 22 auth-rbac, 2 domain-core, 16 module-registry, 103 API, 8 CI guards).
+  - Content service tests (26): create, slug validation, duplicate rejection, publish snapshot, post-publish draft isolation, tenant isolation (cross-org denied).
+  - Content route tests (22): public 404 for draft, public returns published, nested slug support, published snapshot stability, auth/authz enforcement, tenant isolation on detail/list, audit logging.
+  - Org-profile route tests (10): public theme read, management read/write authz, hex color validation, tenant isolation.
+  - Public layout tests (4): brand name rendering, CSS variable application, fallback theme, logo rendering.
+  - Public content page tests (3): published render, notFound for unpublished, correct API path from slug segments.
+- Playwright E2E: 8 tests (6 Phase 1 route guards + 2 Phase 2 content flow).
+  - Full publish lifecycle: create page, edit draft, publish, verify public render, edit draft without republish, confirm public still serves prior published content.
+  - Public 404 for unpublished/nonexistent content.

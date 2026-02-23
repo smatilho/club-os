@@ -1,7 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
-const port = 3100;
-const baseURL = `http://127.0.0.1:${port}`;
+const webPort = 3100;
+const apiPort = 4100;
+const baseURL = `http://127.0.0.1:${webPort}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -13,10 +14,18 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
-  webServer: {
-    command: `cd apps/web && corepack pnpm exec next dev --hostname 127.0.0.1 --port ${port}`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: `cd services/api && PORT=${apiPort} corepack pnpm exec tsx src/server.ts`,
+      url: `http://127.0.0.1:${apiPort}/api/health`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      command: `cd apps/web && CLUB_OS_API_BASE_URL=http://127.0.0.1:${apiPort} corepack pnpm exec next dev --hostname 127.0.0.1 --port ${webPort}`,
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });
