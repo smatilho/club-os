@@ -111,3 +111,46 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 - Playwright E2E: 8 tests (6 Phase 1 route guards + 2 Phase 2 content flow).
   - Full publish lifecycle: create page, edit draft, publish, verify public render, edit draft without republish, confirm public still serves prior published content.
   - Public 404 for unpublished/nonexistent content.
+
+### Phase 3 — Reservations + Payments
+- `packages/domain-core`: `ResourceUnit`, `ReservationHold`, `Reservation`, `PaymentTransaction` entities with branded IDs.
+  - `ReservationHoldStatus`: held, expired, released, consumed.
+  - `ReservationStatus`: held, payment_pending, confirmed, payment_failed, canceled.
+  - `PaymentTransactionStatus`: initiated, succeeded, failed, refunded.
+  - `Money` type (currency + amount in cents), `BookingMode`, `AvailabilityItem`.
+- `services/api`: Reservations module (`/api/reservations/*`).
+  - In-memory inventory + holds + reservations stores with overlap prevention.
+  - Hold lifecycle: 15-minute auto-expiry, release, consumption on reservation creation.
+  - Availability checking: considers active holds, confirmed/pending reservations; ignores canceled/expired.
+  - Reservation state machine: payment_pending → confirmed/payment_failed → canceled.
+  - Idempotent reservation creation via `idempotencyKey`.
+  - Own-access enforcement with management fallback on detail/cancel.
+  - Admin routes: `GET /api/admin/reservations`, override-confirm, override-create (bypasses hold requirement).
+  - Dev inventory auto-seeded on startup for default organization.
+- `services/api`: Payments module (`/api/payments/*`).
+  - `PaymentProvider` port interface with `FakePaymentProvider` (configurable success/failure).
+  - Idempotent payment initiation, webhook processing, and refund operations.
+  - `processReservationPayment`: integrated reservation+payment flow (auto-confirm on success, fail on decline).
+  - Webhook handler confirms reservation on external success notification.
+  - Member self-service transaction list and detail (own-access with management fallback).
+  - Admin refund route (`finance.refund` capability), admin payment list (`finance.read` capability).
+  - Dev/test helpers: fake webhook endpoint, admin fake-complete endpoint.
+- `docs/architecture/payment-failure-handling-matrix.md`: 6 failure scenarios with expected behavior, idempotency guarantees, and test coverage references.
+- `apps/web`: Member booking UI.
+  - `/member/reservations`: reservation list with status badges, currency formatting, "New Booking" link.
+  - `/member/reservations/new`: 4-step booking flow (dates → availability/select → confirm/pay → result).
+  - `/member/reservations/[id]`: reservation detail with status, dates, amount.
+- `apps/web`: Admin reservation & payment UI.
+  - `/admin/reservations`: reservation table with status badges, user, dates, amount (dark admin theme).
+  - `/admin/reservations/[id]`: reservation detail with admin actions (override confirm, cancel, refund).
+  - `/admin/payments`: payment transaction list with status badges and reservation links.
+  - `/admin/payments/[id]`: payment detail with refund action.
+- `docs/architecture/web-route-map.md`: updated with all Phase 3 web and API routes.
+- `docs/architecture/feature-inventory.md`: updated module status annotations.
+- Tests: 213 API tests, 36 web tests, 14 E2E tests.
+  - Reservation service tests (47): resource CRUD, availability (blocking by hold/reservation, non-blocking for canceled/expired), hold lifecycle, reservation state machine, idempotency, admin overrides, tenant isolation.
+  - Reservation route tests (28): availability, holds, reservations, admin routes, authz enforcement, tenant isolation, audit logging.
+  - Payment service tests (16): initiation, idempotency, webhooks (success/idempotent/unknown), refund (success/idempotent/reject), tenant isolation.
+  - Payment route tests (15): reservation+payment integration, member transactions, authz, webhooks, admin refund, audit logging.
+  - Web tests (7 new): member reservation list/detail, admin reservation list/detail/actions, admin payments list, new booking flow.
+  - Playwright E2E (6 new): member reservation page, booking page, admin reservation list, admin payment list, full API booking+cancel flow, admin override-create flow.

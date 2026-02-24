@@ -42,6 +42,13 @@
 | admin  | `/admin/content/new`         | Create new content page              | 2     |
 | admin  | `/admin/content/[id]`        | Edit content page / publish          | 2     |
 | admin  | `/admin/settings/branding`   | Tenant branding/theme settings       | 2     |
+| member | `/member/reservations`       | Member reservation list              | 3     |
+| member | `/member/reservations/new`   | New booking (date→select→confirm)    | 3     |
+| member | `/member/reservations/[id]`  | Reservation detail                   | 3     |
+| admin  | `/admin/reservations`        | Admin reservation list               | 3     |
+| admin  | `/admin/reservations/[id]`   | Admin reservation detail + actions   | 3     |
+| admin  | `/admin/payments`            | Payment transaction list             | 3     |
+| admin  | `/admin/payments/[id]`       | Payment detail + refund              | 3     |
 
 ## API Routes (Phase 2)
 
@@ -56,3 +63,25 @@
 | GET    | `/api/org-profile/public/theme`       | none       | —                |
 | GET    | `/api/org-profile/theme`              | required   | settings.read    |
 | PUT    | `/api/org-profile/theme`              | required   | settings.manage  |
+
+## API Routes (Phase 3 — Reservations & Payments)
+
+| Method | Path                                              | Auth       | Capability            |
+|--------|---------------------------------------------------|------------|-----------------------|
+| GET    | `/api/reservations/availability`                  | required   | reservation.read      |
+| POST   | `/api/reservations/holds`                         | required   | reservation.read      |
+| GET    | `/api/reservations/holds/:id`                     | required   | reservation.read      |
+| POST   | `/api/reservations/holds/:id/release`             | required   | reservation.read      |
+| GET    | `/api/reservations/my`                            | required   | reservation.read      |
+| GET    | `/api/reservations/:id`                           | required   | reservation.read      |
+| POST   | `/api/reservations`                               | required   | reservation.read      |
+| POST   | `/api/reservations/:id/cancel`                    | required   | reservation.read      |
+| GET    | `/api/admin/reservations`                         | required   | reservation.manage    |
+| POST   | `/api/admin/reservations/:id/override-confirm`    | required   | reservation.override  |
+| POST   | `/api/admin/reservations/override-create`         | required   | reservation.override  |
+| GET    | `/api/payments/my`                                | required   | reservation.read      |
+| GET    | `/api/payments/transactions/:id`                  | required   | reservation.read      |
+| POST   | `/api/payments/webhooks/fake`                     | none       | —                     |
+| GET    | `/api/admin/payments`                             | required   | finance.read          |
+| POST   | `/api/admin/payments/:id/refund`                  | required   | finance.refund        |
+| POST   | `/api/admin/payments/fake/complete`               | required   | reservation.manage    |

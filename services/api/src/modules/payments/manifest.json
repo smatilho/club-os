@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1.0",
+  "name": "payments-core",
+  "version": "0.1.0",
+  "displayName": "Payments Core",
+  "description": "Idempotent payment abstraction with provider-agnostic architecture and refund support",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/payments/my",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/payments/transactions/:id",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "shared",
+      "path": "/api/payments/webhooks/fake",
+      "visibility": "internal"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/payments/:id/refund",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/payments/fake/complete",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/payments",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/payments/[id]",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "finance.read",
+    "finance.manage",
+    "finance.refund"
+  ],
+  "dependencies": [
+    {
+      "module": "reservations-core",
+      "version": "^0.1.0"
+    }
+  ],
+  "events": [
+    {
+      "name": "payment.initiated",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "payment.succeeded",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "payment.failed",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "payment.refunded",
+      "direction": "publishes",
+      "version": "0.1.0"
+    }
+  ]
+}

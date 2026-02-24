@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "1.0",
+  "name": "reservations-core",
+  "version": "0.1.0",
+  "displayName": "Reservations Core",
+  "description": "Inventory, hold, and reservation lifecycle with booking mode support",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/availability",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/holds",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/holds/:id",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/holds/:id/release",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/my",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/:id",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "member",
+      "path": "/api/reservations/:id/cancel",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/reservations",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/reservations/:id/override-confirm",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/reservations/override-create",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "member",
+      "path": "/member/reservations",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "web",
+      "area": "member",
+      "path": "/member/reservations/new",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "web",
+      "area": "member",
+      "path": "/member/reservations/[id]",
+      "visibility": "authenticated"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/reservations",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/reservations/[id]",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "reservation.read",
+    "reservation.manage",
+    "reservation.override"
+  ],
+  "dependencies": [
+    {
+      "module": "identity-access",
+      "version": "^0.1.0"
+    }
+  ],
+  "events": [
+    {
+      "name": "reservation.hold.created",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "reservation.created",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "reservation.confirmed",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "reservation.canceled",
+      "direction": "publishes",
+      "version": "0.1.0"
+    }
+  ]
+}

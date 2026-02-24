@@ -1,13 +1,13 @@
 # Feature Inventory Blueprint
 
 ## Baseline Modules
-- `identity-access`
-- `organization-profile`
-- `content-cms`
-- `reservations-core`
-- `payments-core`
-- `community-events`
-- `operations-audit`
+- `identity-access` — Phase 1 (implemented)
+- `organization-profile` — Phase 2 (implemented)
+- `content-cms` — Phase 2 (implemented)
+- `reservations-core` — Phase 3 (implemented): inventory, holds, reservation lifecycle, availability, admin overrides
+- `payments-core` — Phase 3 (implemented): idempotent payments, fake provider, webhooks, refunds
+- `community-events` — planned
+- `operations-audit` — planned
 
 ## Tenant Configurable Options
 - Reservation mode: `bed_selection` | `room_booking`
