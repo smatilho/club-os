@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "name": "notifications",
+  "version": "0.1.0",
+  "displayName": "Notifications",
+  "description": "In-app and email notification channel abstraction with member read/mark-read",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    { "app": "api", "area": "member", "path": "/api/notifications/my", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/notifications/:id/read", "visibility": "authenticated" },
+    { "app": "web", "area": "member", "path": "/member/notifications", "visibility": "authenticated" }
+  ],
+  "capabilities": [
+    "notifications.read"
+  ]
+}

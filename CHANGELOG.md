@@ -154,3 +154,56 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
   - Payment route tests (15): reservation+payment integration, member transactions, authz, webhooks, admin refund, audit logging.
   - Web tests (7 new): member reservation list/detail, admin reservation list/detail/actions, admin payments list, new booking flow.
   - Playwright E2E (6 new): member reservation page, booking page, admin reservation list, admin payment list, full API booking+cancel flow, admin override-create flow.
+
+### Phase 4 — Community + Events + Notifications
+- `packages/domain-core`: `CommunityPost`, `CommunityComment`, `CommunityReport` entities with branded IDs.
+  - `ModerationStatus`: visible, hidden, locked, deleted.
+  - `ReportStatus`: open, triaged, resolved, dismissed. `ReportReasonCode`: spam, abuse, harassment, unsafe, other.
+  - `ClubEvent`, `EventRSVP` entities with `EventStatus` (draft/published/canceled) and `RSVPStatus` (going/waitlist/canceled).
+  - `NotificationMessage` entity with `NotificationChannelKind` (in_app/email), `NotificationStatus`, `NotificationTopic`.
+- `packages/auth-rbac`: New capabilities added to RBAC matrix.
+  - Member: `community.write`, `community.comment`, `community.report`, `events.read`, `notifications.read`.
+  - Org admin: all community caps + `community.moderate`, all events caps (`events.write`, `events.publish`, `events.manage`).
+- `services/api`: Community module (`/api/community/*`, `/api/admin/community/*`).
+  - Post CRUD with tag normalization, author-only edit (moderator override).
+  - Comment CRUD with post status checks (blocked on hidden/locked/deleted posts).
+  - Report intake (validates reason code enum, verifies target exists in org).
+  - Report lifecycle: open → triaged → resolved/dismissed with mandatory audit logging.
+  - Moderation actions: hide/unhide/lock/unlock posts, hide/unhide comments.
+  - Report workflow notifications: reporter receipt + reporter outcome notifications (in-app; moderator fan-out deferred).
+  - Tenant isolation on all operations with `extractResource` for tenant-mismatch policy detection.
+- `services/api`: Events module (`/api/events/*`, `/api/admin/events/*`).
+  - Event lifecycle: create (draft) → publish → cancel.
+  - RSVP with capacity-aware waitlisting (no auto-promotion in Phase 4).
+  - Member event listing (published only), admin listing (all statuses).
+  - RSVP triggers in-app notification to event organizer.
+- `services/api`: Notifications module (`/api/notifications/*`).
+  - `NotificationChannel` interface with `InAppNotificationChannel` and `FakeEmailNotificationChannel`.
+  - `NotificationDispatcher`: fans out per channel, catches errors (channel failures don't break primary action).
+  - `NotificationService`: create, list (in_app only), mark-as-read with user+org scoping.
+- `docs/architecture/abuse-report-handling-workflow.md`: report intake, lifecycle, moderation actions, audit requirements, notification behavior, current limitations.
+- `apps/web`: Member community + events + notifications UI.
+  - `/member/community`: post feed with status badges, tags, relative timestamps.
+  - `/member/community/new`: create post form with tag input.
+  - `/member/community/posts/[id]`: post detail with comments, comment form, report buttons.
+  - `/member/events`: events list with RSVP status badges, date range formatting.
+  - `/member/events/[id]`: event detail with RSVP button (going/waitlist/cancel).
+  - `/member/notifications`: notification list with unread indicators, topic badges, mark-as-read.
+- `apps/web`: Admin community + events UI.
+  - `/admin/community/reports`: report table with status filter, reason codes, review links.
+  - `/admin/community/reports/[id]`: report detail with triage/resolve/dismiss + moderation actions.
+  - `/admin/events`: events table with status badges, RSVP counts, create button.
+  - `/admin/events/new`: create event form.
+  - `/admin/events/[id]`: event detail with publish/cancel actions, RSVP table.
+  - Admin nav updated with Reports and Events links.
+- `docs/architecture/web-route-map.md`: updated with all Phase 4 web and API routes.
+- `docs/architecture/feature-inventory.md`: updated module status annotations.
+- Tests: 335 API tests, 54 web tests, 8 CI guards.
+  - Community service tests (32): post CRUD, moderation actions, comment lifecycle, report workflow, tenant isolation.
+  - Community route tests (33): member post/comment/report routes, admin moderation routes, authz enforcement, tenant-mismatch audit, notification hooks, moderation visibility gates.
+  - Event service tests (20): create, validate, publish, cancel, RSVP lifecycle, capacity/waitlist, tenant isolation.
+  - Event route tests (16): admin CRUD/publish/cancel, member list/detail/RSVP, tenant isolation.
+  - Notification service tests (7): in-app/email creation, dispatch, list, mark-as-read, cross-user/cross-org deny, channel failure resilience.
+  - Notification route tests (5): list, auth, mark-as-read, cross-user deny, tenant-mismatch policy deny semantics.
+  - Web tests (17 new): community feed/events/notifications/admin reports/admin events pages.
+  - Playwright E2E (8 new): community moderation flow, event RSVP flow, notification flow (API-level + UI smoke).

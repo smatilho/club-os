@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "name": "events",
+  "version": "0.1.0",
+  "displayName": "Events",
+  "description": "Club event planning, publishing, RSVP management, and admin event controls",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    { "app": "api", "area": "member", "path": "/api/events", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/events/:id", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/events/:id/rsvp", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/events/:id/rsvp/cancel", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/events/my/rsvps", "visibility": "authenticated" },
+    { "app": "api", "area": "admin", "path": "/api/admin/events", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/events/:id", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/events/:id/publish", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/events/:id/cancel", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/events/:id/rsvps", "visibility": "management" },
+    { "app": "web", "area": "member", "path": "/member/events", "visibility": "authenticated" },
+    { "app": "web", "area": "member", "path": "/member/events/:id", "visibility": "authenticated" },
+    { "app": "web", "area": "admin", "path": "/admin/events", "visibility": "management" },
+    { "app": "web", "area": "admin", "path": "/admin/events/new", "visibility": "management" },
+    { "app": "web", "area": "admin", "path": "/admin/events/:id", "visibility": "management" }
+  ],
+  "capabilities": [
+    "events.read",
+    "events.write",
+    "events.publish",
+    "events.manage"
+  ]
+}

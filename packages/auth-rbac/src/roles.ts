@@ -17,8 +17,13 @@ export type Role =
 const MEMBER_CAPABILITIES: Capability[] = [
   "content.read",
   "community.read",
+  "community.write",
+  "community.comment",
+  "community.report",
   "reservation.read",
   "membership.read",
+  "events.read",
+  "notifications.read",
 ];
 
 export const ROLE_CAPABILITY_MAP: Record<Role, Capability[]> = {
@@ -53,7 +58,15 @@ export const ROLE_CAPABILITY_MAP: Record<Role, Capability[]> = {
     "finance.manage",
     "finance.refund",
     "community.read",
+    "community.write",
+    "community.comment",
+    "community.report",
     "community.moderate",
+    "events.read",
+    "events.write",
+    "events.publish",
+    "events.manage",
+    "notifications.read",
     "settings.read",
     "settings.manage",
     "audit.read",

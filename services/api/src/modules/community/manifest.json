@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "name": "community",
+  "version": "0.1.0",
+  "displayName": "Community",
+  "description": "Posts, comments, reports, and moderation tools for club community",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    { "app": "api", "area": "member", "path": "/api/community/posts", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/community/posts/:id", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/community/posts/:id/comments", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/community/posts/:id/report", "visibility": "authenticated" },
+    { "app": "api", "area": "member", "path": "/api/community/comments/:id/report", "visibility": "authenticated" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/reports", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/reports/:id", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/reports/:id/triage", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/reports/:id/resolve", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/reports/:id/dismiss", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/posts/:id/hide", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/posts/:id/unhide", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/posts/:id/lock", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/posts/:id/unlock", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/comments/:id/hide", "visibility": "management" },
+    { "app": "api", "area": "admin", "path": "/api/admin/community/comments/:id/unhide", "visibility": "management" },
+    { "app": "web", "area": "member", "path": "/member/community", "visibility": "authenticated" },
+    { "app": "web", "area": "member", "path": "/member/community/new", "visibility": "authenticated" },
+    { "app": "web", "area": "member", "path": "/member/community/posts/:id", "visibility": "authenticated" },
+    { "app": "web", "area": "admin", "path": "/admin/community/reports", "visibility": "management" },
+    { "app": "web", "area": "admin", "path": "/admin/community/reports/:id", "visibility": "management" }
+  ],
+  "capabilities": [
+    "community.read",
+    "community.write",
+    "community.comment",
+    "community.report",
+    "community.moderate"
+  ]
+}

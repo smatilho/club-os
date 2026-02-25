@@ -9,6 +9,9 @@ const ADMIN_CAPABILITIES = [
   "finance.manage",
   "finance.refund",
   "community.moderate",
+  "events.manage",
+  "events.write",
+  "events.publish",
   "settings.read",
   "settings.manage",
   "content.write",
@@ -109,6 +112,30 @@ export default async function AdminLayout({
               }}
             >
               Branding
+            </a>
+            <a
+              href="/admin/community/reports"
+              style={{
+                padding: "0.375rem 0.75rem",
+                fontSize: "0.8125rem",
+                color: "#999",
+                textDecoration: "none",
+                borderRadius: "4px",
+              }}
+            >
+              Reports
+            </a>
+            <a
+              href="/admin/events"
+              style={{
+                padding: "0.375rem 0.75rem",
+                fontSize: "0.8125rem",
+                color: "#999",
+                textDecoration: "none",
+                borderRadius: "4px",
+              }}
+            >
+              Events
             </a>
           </div>
         </div>

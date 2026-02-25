@@ -6,10 +6,17 @@ describe("ROLE_CAPABILITY_MAP", () => {
     const caps = ROLE_CAPABILITY_MAP.member;
     expect(caps).toContain("content.read");
     expect(caps).toContain("community.read");
+    expect(caps).toContain("community.write");
+    expect(caps).toContain("community.comment");
+    expect(caps).toContain("community.report");
     expect(caps).toContain("reservation.read");
     expect(caps).toContain("membership.read");
+    expect(caps).toContain("events.read");
+    expect(caps).toContain("notifications.read");
     expect(caps).not.toContain("content.write");
     expect(caps).not.toContain("settings.manage");
+    expect(caps).not.toContain("community.moderate");
+    expect(caps).not.toContain("events.manage");
   });
 
   it("reservationist extends member with reservation management", () => {
@@ -43,7 +50,16 @@ describe("ROLE_CAPABILITY_MAP", () => {
     expect(caps).toContain("audit.read");
     expect(caps).toContain("membership.manage");
     expect(caps).toContain("finance.refund");
+    expect(caps).toContain("community.read");
+    expect(caps).toContain("community.write");
+    expect(caps).toContain("community.comment");
+    expect(caps).toContain("community.report");
     expect(caps).toContain("community.moderate");
+    expect(caps).toContain("events.read");
+    expect(caps).toContain("events.write");
+    expect(caps).toContain("events.publish");
+    expect(caps).toContain("events.manage");
+    expect(caps).toContain("notifications.read");
     expect(caps).toContain("reservation.override");
     expect(caps).toContain("content.publish");
   });

@@ -49,6 +49,17 @@
 | admin  | `/admin/reservations/[id]`   | Admin reservation detail + actions   | 3     |
 | admin  | `/admin/payments`            | Payment transaction list             | 3     |
 | admin  | `/admin/payments/[id]`       | Payment detail + refund              | 3     |
+| member | `/member/community`          | Community feed (post list)           | 4     |
+| member | `/member/community/new`      | Create new community post            | 4     |
+| member | `/member/community/posts/[id]` | Post detail with comments          | 4     |
+| member | `/member/events`             | Published events list with RSVP      | 4     |
+| member | `/member/events/[id]`        | Event detail + RSVP button           | 4     |
+| member | `/member/notifications`      | In-app notifications list            | 4     |
+| admin  | `/admin/community/reports`   | Community report list + filter       | 4     |
+| admin  | `/admin/community/reports/[id]` | Report detail + moderation actions | 4     |
+| admin  | `/admin/events`              | Events management list               | 4     |
+| admin  | `/admin/events/new`          | Create new event                     | 4     |
+| admin  | `/admin/events/[id]`         | Event detail + publish/cancel        | 4     |
 
 ## API Routes (Phase 2)
 
@@ -85,3 +96,40 @@
 | GET    | `/api/admin/payments`                             | required   | finance.read          |
 | POST   | `/api/admin/payments/:id/refund`                  | required   | finance.refund        |
 | POST   | `/api/admin/payments/fake/complete`               | required   | reservation.manage    |
+
+## API Routes (Phase 4 — Community + Events + Notifications)
+
+| Method | Path                                              | Auth       | Capability            |
+|--------|---------------------------------------------------|------------|-----------------------|
+| GET    | `/api/community/posts`                            | required   | community.read        |
+| POST   | `/api/community/posts`                            | required   | community.write       |
+| GET    | `/api/community/posts/:id`                        | required   | community.read        |
+| PATCH  | `/api/community/posts/:id`                        | required   | community.write       |
+| GET    | `/api/community/posts/:id/comments`               | required   | community.read        |
+| POST   | `/api/community/posts/:id/comments`               | required   | community.comment     |
+| POST   | `/api/community/posts/:id/report`                 | required   | community.report      |
+| POST   | `/api/community/posts/:id/comments/:commentId/report` | required | community.report   |
+| GET    | `/api/admin/community/reports`                    | required   | community.moderate    |
+| GET    | `/api/admin/community/reports/:id`                | required   | community.moderate    |
+| POST   | `/api/admin/community/reports/:id/triage`         | required   | community.moderate    |
+| POST   | `/api/admin/community/reports/:id/resolve`        | required   | community.moderate    |
+| POST   | `/api/admin/community/reports/:id/dismiss`        | required   | community.moderate    |
+| POST   | `/api/admin/community/posts/:id/hide`             | required   | community.moderate    |
+| POST   | `/api/admin/community/posts/:id/unhide`           | required   | community.moderate    |
+| POST   | `/api/admin/community/posts/:id/lock`             | required   | community.moderate    |
+| POST   | `/api/admin/community/posts/:id/unlock`           | required   | community.moderate    |
+| POST   | `/api/admin/community/comments/:id/hide`          | required   | community.moderate    |
+| POST   | `/api/admin/community/comments/:id/unhide`        | required   | community.moderate    |
+| GET    | `/api/events`                                     | required   | events.read           |
+| GET    | `/api/events/:id`                                 | required   | events.read           |
+| POST   | `/api/events/:id/rsvp`                            | required   | events.read           |
+| POST   | `/api/events/:id/rsvp/cancel`                     | required   | events.read           |
+| GET    | `/api/events/my/rsvps`                            | required   | events.read           |
+| GET    | `/api/admin/events`                               | required   | events.manage         |
+| POST   | `/api/admin/events`                               | required   | events.write          |
+| PATCH  | `/api/admin/events/:id`                           | required   | events.write          |
+| POST   | `/api/admin/events/:id/publish`                   | required   | events.publish        |
+| POST   | `/api/admin/events/:id/cancel`                    | required   | events.manage         |
+| GET    | `/api/admin/events/:id/rsvps`                     | required   | events.manage         |
+| GET    | `/api/notifications/my`                           | required   | notifications.read    |
+| POST   | `/api/notifications/:id/read`                     | required   | notifications.read    |

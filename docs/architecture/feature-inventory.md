@@ -6,7 +6,9 @@
 - `content-cms` — Phase 2 (implemented)
 - `reservations-core` — Phase 3 (implemented): inventory, holds, reservation lifecycle, availability, admin overrides
 - `payments-core` — Phase 3 (implemented): idempotent payments, fake provider, webhooks, refunds
-- `community-events` — planned
+- `community` — Phase 4 (implemented): posts, comments, reports, moderation (hide/unhide/lock/unlock), report workflow (triage/resolve/dismiss)
+- `events` — Phase 4 (implemented): create/publish/cancel lifecycle, RSVP with capacity/waitlist
+- `notifications` — Phase 4 (implemented): in-app + email channel abstraction, dispatcher, mark-as-read
 - `operations-audit` — planned
 
 ## Tenant Configurable Options

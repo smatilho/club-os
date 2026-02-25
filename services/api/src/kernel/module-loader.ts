@@ -8,6 +8,12 @@ import {
   paymentRoutes,
   processReservationPayment,
 } from "../modules/payments/routes";
+import { communityRoutes } from "../modules/community/routes";
+import { eventRoutes } from "../modules/events/routes";
+import {
+  notificationRoutes,
+  notificationService,
+} from "../modules/notifications/routes";
 
 export interface ModuleDefinition {
   name: string;
@@ -46,6 +52,23 @@ const modules: ModuleDefinition[] = [
     name: "payments",
     version: "0.1.0",
     register: paymentRoutes,
+  },
+  {
+    name: "community",
+    version: "0.1.0",
+    register: (app: Hono) =>
+      communityRoutes(app, { notificationService }),
+  },
+  {
+    name: "events",
+    version: "0.1.0",
+    register: (app: Hono) =>
+      eventRoutes(app, { notificationService }),
+  },
+  {
+    name: "notifications",
+    version: "0.1.0",
+    register: notificationRoutes,
   },
 ];
 
