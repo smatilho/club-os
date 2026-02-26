@@ -1,11 +1,15 @@
 import { notFound } from "next/navigation";
 import { publicApiFetch } from "../../../lib/api-client";
+import { BlockRenderer } from "@club-os/ui-kit";
+import type { PageBlock } from "@club-os/domain-core";
 
 interface PublicContentPage {
   slug: string;
   title: string;
   body: string;
   publishedAt: string;
+  contentFormat?: string;
+  blocks?: PageBlock[];
 }
 
 export default async function PublicContentPage({
@@ -25,6 +29,14 @@ export default async function PublicContentPage({
   }
 
   const page = result.data;
+
+  if (page.contentFormat === "blocks_v1" && page.blocks && page.blocks.length > 0) {
+    return (
+      <article className="content-page">
+        <BlockRenderer blocks={page.blocks} />
+      </article>
+    );
+  }
 
   return (
     <article className="content-page">

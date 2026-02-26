@@ -43,6 +43,26 @@
 - Add notification channels.
 - Add moderation/community UI tests and Playwright abuse/moderation flow coverage.
 
+## Phase 4.5: CMS Productization + UX Integration
+- Implement CMS-driven navigation menus with `MenuItem` domain model and `NavigationService`.
+  - `navigation.read` and `navigation.write` capabilities in RBAC.
+  - Public unauthenticated menu API (`GET /api/navigation/menus/:location`).
+  - Admin menu CRUD API with policy enforcement and tenant isolation.
+- Content-to-menu integration: pages auto-link to menus on publish via `showInMenu`/`menuLocation` fields.
+- Unified web shells: public header/footer, member nav, and admin nav driven by menu API with hardcoded fallbacks.
+- Admin navigation management page (`/admin/navigation`).
+- Design system: `@club-os/ui-kit` tokens (spacing, radii, fonts, adminTheme, publicThemeDefaults).
+- Component-based page builder:
+  - `ContentFormat` type (`legacy_markdown` | `blocks_v1`) with `PageBlock` model.
+  - Block registry with 12 built-in block types and editor field metadata.
+  - Design system primitives (Container, Stack, Grid, Heading, Button, Card, SectionWrapper, Badge, Alert).
+  - Block renderers for all types + `UnknownBlockRenderer` fallback.
+  - 6 page templates (Home, About, Facilities, Membership/FAQ, Contact, Generic).
+  - Block editor admin UI with add/reorder/edit/remove blocks and preview toggle.
+  - Public rendering: `blocks_v1` pages render via `BlockRenderer`; legacy pages unchanged.
+- Content list page updated with menu status column.
+- Architecture docs: `cms-navigation-and-menus.md`, `cms-block-registry-and-page-builder.md`.
+
 ## Phase 5: OSS Hardening
 - Expand docs, examples, templates, and contribution pipeline.
 - Add demo tenant seed and local e2e environment.

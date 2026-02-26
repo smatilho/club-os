@@ -14,6 +14,7 @@ import {
   notificationRoutes,
   notificationService,
 } from "../modules/notifications/routes";
+import { navigationRoutes } from "../modules/navigation/routes";
 
 export interface ModuleDefinition {
   name: string;
@@ -69,6 +70,11 @@ const modules: ModuleDefinition[] = [
     name: "notifications",
     version: "0.1.0",
     register: notificationRoutes,
+  },
+  {
+    name: "navigation",
+    version: "0.1.0",
+    register: navigationRoutes,
   },
 ];
 

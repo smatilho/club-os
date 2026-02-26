@@ -4,7 +4,10 @@ import { mockAuthMiddleware } from "../../kernel/mock-auth-middleware";
 import { requireCapability } from "../../kernel/policy-middleware";
 import { getDefaultAuthHandler } from "../../kernel/auth-handler";
 import { ContentService } from "./service";
-import type { ContentPageId, OrgId } from "@club-os/domain-core";
+import { NavigationService } from "../navigation/service";
+import { getTemplate } from "@club-os/ui-kit/src/templates";
+import { seedDefaultSite } from "../../seed";
+import type { ContentPageId, MenuLocation, OrgId, PageBlock, ContentFormat } from "@club-os/domain-core";
 
 /**
  * Dev default org for public endpoint tenant resolution.
@@ -15,11 +18,14 @@ import type { ContentPageId, OrgId } from "@club-os/domain-core";
 const DEV_DEFAULT_ORG_ID = "org-default";
 
 const contentService = new ContentService();
+const navigationService = new NavigationService();
 
 interface ContentRoutesOptions {
   auth?: "real" | "mock";
   authHandler?: MiddlewareHandler;
   defaultOrgId?: string;
+  navigationService?: NavigationService;
+  autoSeed?: boolean;
 }
 
 function getContentAuthHandler(
@@ -61,17 +67,24 @@ function errorStatus(error: string): 400 | 404 {
 function validateCreatePageBody(
   body: unknown,
 ):
-  | { ok: true; value: { title: string; slug: string; body: string } }
+  | {
+      ok: true;
+      value: {
+        title: string;
+        slug: string;
+        body: string;
+        showInMenu?: boolean;
+        menuLocation?: string;
+        menuLabel?: string;
+        menuSortOrder?: number;
+      };
+    }
   | { ok: false; error: string } {
   if (!body || typeof body !== "object") {
     return { ok: false, error: "Body must be an object" };
   }
-  const candidate = body as {
-    title?: unknown;
-    slug?: unknown;
-    body?: unknown;
-  };
-  if (typeof candidate.title !== "string" || candidate.title.trim() === "") {
+  const candidate = body as Record<string, unknown>;
+  if (typeof candidate.title !== "string" || (candidate.title as string).trim() === "") {
     return { ok: false, error: "title must be a non-empty string" };
   }
   if (typeof candidate.slug !== "string") {
@@ -80,14 +93,41 @@ function validateCreatePageBody(
   if (typeof candidate.body !== "string") {
     return { ok: false, error: "body must be a string" };
   }
-  return {
-    ok: true,
-    value: {
-      title: candidate.title,
-      slug: candidate.slug,
-      body: candidate.body,
-    },
+  const result: {
+    title: string;
+    slug: string;
+    body: string;
+    showInMenu?: boolean;
+    menuLocation?: string;
+    menuLabel?: string;
+    menuSortOrder?: number;
+  } = {
+    title: candidate.title as string,
+    slug: candidate.slug as string,
+    body: candidate.body as string,
   };
+  if (candidate.showInMenu !== undefined) {
+    result.showInMenu = !!candidate.showInMenu;
+  }
+  if (candidate.menuLocation !== undefined) {
+    result.menuLocation = candidate.menuLocation as string;
+  }
+  if (candidate.menuLabel !== undefined) {
+    result.menuLabel = candidate.menuLabel as string;
+  }
+  if (candidate.menuSortOrder !== undefined) {
+    result.menuSortOrder = candidate.menuSortOrder as number;
+  }
+  if (candidate.contentFormat !== undefined) {
+    (result as any).contentFormat = candidate.contentFormat;
+  }
+  if (candidate.blocks !== undefined) {
+    (result as any).blocks = candidate.blocks;
+  }
+  if (candidate.templateKey !== undefined) {
+    (result as any).templateKey = candidate.templateKey;
+  }
+  return { ok: true, value: result };
 }
 
 function validateUpdateDraftBody(
@@ -95,18 +135,30 @@ function validateUpdateDraftBody(
 ):
   | {
       ok: true;
-      value: { title?: string; slug?: string; body?: string };
+      value: {
+        title?: string;
+        slug?: string;
+        body?: string;
+        showInMenu?: boolean;
+        menuLocation?: string;
+        menuLabel?: string;
+        menuSortOrder?: number;
+      };
     }
   | { ok: false; error: string } {
   if (!body || typeof body !== "object") {
     return { ok: false, error: "Body must be an object" };
   }
-  const candidate = body as {
-    title?: unknown;
-    slug?: unknown;
-    body?: unknown;
-  };
-  const result: { title?: string; slug?: string; body?: string } = {};
+  const candidate = body as Record<string, unknown>;
+  const result: {
+    title?: string;
+    slug?: string;
+    body?: string;
+    showInMenu?: boolean;
+    menuLocation?: string;
+    menuLabel?: string;
+    menuSortOrder?: number;
+  } = {};
   if (candidate.title !== undefined) {
     if (typeof candidate.title !== "string") {
       return { ok: false, error: "title must be a string" };
@@ -125,7 +177,69 @@ function validateUpdateDraftBody(
     }
     result.body = candidate.body;
   }
+  if (candidate.showInMenu !== undefined) {
+    result.showInMenu = !!candidate.showInMenu;
+  }
+  if (candidate.menuLocation !== undefined) {
+    result.menuLocation = candidate.menuLocation as string;
+  }
+  if (candidate.menuLabel !== undefined) {
+    result.menuLabel = candidate.menuLabel as string;
+  }
+  if (candidate.menuSortOrder !== undefined) {
+    result.menuSortOrder = candidate.menuSortOrder as number;
+  }
+  if (candidate.contentFormat !== undefined) {
+    (result as any).contentFormat = candidate.contentFormat;
+  }
+  if (candidate.blocks !== undefined) {
+    (result as any).blocks = candidate.blocks;
+  }
   return { ok: true, value: result };
+}
+
+function serializeDraft(draft: {
+  title: string;
+  slug: string;
+  body: string;
+  updatedAt: string;
+  showInMenu?: boolean;
+  menuLocation?: string;
+  menuLabel?: string;
+  menuSortOrder?: number;
+  contentFormat?: string;
+  blocks?: unknown[];
+}) {
+  return {
+    title: draft.title,
+    slug: draft.slug,
+    body: draft.body,
+    updatedAt: draft.updatedAt,
+    showInMenu: draft.showInMenu ?? false,
+    menuLocation: draft.menuLocation ?? null,
+    menuLabel: draft.menuLabel ?? null,
+    menuSortOrder: draft.menuSortOrder ?? null,
+    contentFormat: draft.contentFormat ?? "legacy_markdown",
+    blocks: draft.blocks ?? [],
+  };
+}
+
+function serializePublished(published: {
+  title: string;
+  slug: string;
+  body: string;
+  publishedAt: string;
+  contentFormat?: string;
+  blocks?: unknown[];
+}) {
+  return {
+    title: published.title,
+    slug: published.slug,
+    body: published.body,
+    publishedAt: published.publishedAt,
+    contentFormat: published.contentFormat ?? "legacy_markdown",
+    blocks: published.blocks ?? [],
+  };
 }
 
 export function contentRoutes(
@@ -133,6 +247,13 @@ export function contentRoutes(
   options?: ContentRoutesOptions,
 ): void {
   const defaultOrgId = (options?.defaultOrgId ?? DEV_DEFAULT_ORG_ID) as OrgId;
+  const navService = options?.navigationService ?? navigationService;
+
+  // Wire up template resolver for block-based pages
+  contentService.resolveTemplate = (key: string) => {
+    const tpl = getTemplate(key);
+    return tpl?.blocks;
+  };
 
   // --- Public routes (no auth) ---
   const publicContent = new Hono();
@@ -151,12 +272,7 @@ export function contentRoutes(
 
     const page = result.value;
     return c.json({
-      data: {
-        slug: page.published!.slug,
-        title: page.published!.title,
-        body: page.published!.body,
-        publishedAt: page.published!.publishedAt,
-      },
+      data: serializePublished(page.published!),
     });
   });
 
@@ -186,6 +302,8 @@ export function contentRoutes(
           publishedAt: page.published?.publishedAt ?? null,
           updatedAt: page.updatedAt,
           version: page.version,
+          showInMenu: page.draft.showInMenu ?? false,
+          menuLocation: page.draft.menuLocation ?? null,
         })),
       });
     },
@@ -212,19 +330,9 @@ export function contentRoutes(
           id: page.id,
           organizationId: page.organizationId,
           status: page.status,
-          draft: {
-            title: page.draft.title,
-            slug: page.draft.slug,
-            body: page.draft.body,
-            updatedAt: page.draft.updatedAt,
-          },
+          draft: serializeDraft(page.draft),
           published: page.published
-            ? {
-                title: page.published.title,
-                slug: page.published.slug,
-                body: page.published.body,
-                publishedAt: page.published.publishedAt,
-              }
+            ? serializePublished(page.published)
             : null,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
@@ -249,11 +357,19 @@ export function contentRoutes(
       }
       const session = c.get("session")!;
 
+      const v = validated.value as any;
       const result = contentService.createPage({
-        title: validated.value.title,
-        slug: validated.value.slug,
-        body: validated.value.body,
+        title: v.title,
+        slug: v.slug,
+        body: v.body,
         organizationId: session.organizationId as OrgId,
+        showInMenu: v.showInMenu,
+        menuLocation: v.menuLocation,
+        menuLabel: v.menuLabel,
+        menuSortOrder: v.menuSortOrder,
+        contentFormat: v.contentFormat,
+        blocks: v.blocks,
+        templateKey: v.templateKey,
       });
       if (!result.ok) {
         return c.json({ error: result.error }, 400);
@@ -266,12 +382,7 @@ export function contentRoutes(
             id: page.id,
             organizationId: page.organizationId,
             status: page.status,
-            draft: {
-              title: page.draft.title,
-              slug: page.draft.slug,
-              body: page.draft.body,
-              updatedAt: page.draft.updatedAt,
-            },
+            draft: serializeDraft(page.draft),
             published: null,
             createdAt: page.createdAt,
             updatedAt: page.updatedAt,
@@ -315,19 +426,9 @@ export function contentRoutes(
           id: page.id,
           organizationId: page.organizationId,
           status: page.status,
-          draft: {
-            title: page.draft.title,
-            slug: page.draft.slug,
-            body: page.draft.body,
-            updatedAt: page.draft.updatedAt,
-          },
+          draft: serializeDraft(page.draft),
           published: page.published
-            ? {
-                title: page.published.title,
-                slug: page.published.slug,
-                body: page.published.body,
-                publishedAt: page.published.publishedAt,
-              }
+            ? serializePublished(page.published)
             : null,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
@@ -355,35 +456,62 @@ export function contentRoutes(
       }
 
       const page = result.value;
+
+      // Menu integration on publish
+      let inMenu = false;
+      if (page.draft.showInMenu && page.draft.menuLocation) {
+        navService.upsertForContentPage({
+          contentPageId: page.id,
+          organizationId: page.organizationId,
+          location: page.draft.menuLocation as MenuLocation,
+          label: page.draft.menuLabel || page.draft.title,
+          slug: page.published!.slug,
+        });
+        inMenu = true;
+      } else {
+        navService.removeForContentPage(page.id, page.organizationId);
+      }
+
       return c.json({
         data: {
           id: page.id,
           organizationId: page.organizationId,
           status: page.status,
-          draft: {
-            title: page.draft.title,
-            slug: page.draft.slug,
-            body: page.draft.body,
-            updatedAt: page.draft.updatedAt,
-          },
+          draft: serializeDraft(page.draft),
           published: page.published
-            ? {
-                title: page.published.title,
-                slug: page.published.slug,
-                body: page.published.body,
-                publishedAt: page.published.publishedAt,
-              }
+            ? serializePublished(page.published)
             : null,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
           version: page.version,
+          inMenu,
         },
       });
     },
   );
 
+  // Seed endpoint — idempotent, creates default pages + menu items
+  management.post(
+    "/seed",
+    requireCapability("content.publish", "content-page"),
+    async (c) => {
+      const session = c.get("session")!;
+      const result = seedDefaultSite(
+        contentService,
+        navService,
+        session.organizationId as OrgId,
+      );
+      return c.json({ data: result });
+    },
+  );
+
   app.route("/api/content", management);
+
+  // Auto-seed when enabled (production/dev startup)
+  if (options?.autoSeed !== false) {
+    seedDefaultSite(contentService, navService, defaultOrgId);
+  }
 }
 
 // Export service for testing
-export { contentService, ContentService };
+export { contentService, navigationService, ContentService };

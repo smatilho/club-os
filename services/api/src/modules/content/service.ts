@@ -1,6 +1,8 @@
 import type {
   ContentPage,
   ContentPageId,
+  ContentFormat,
+  PageBlock,
   OrgId,
 } from "@club-os/domain-core";
 import { contentPageId, ok, err, type Result } from "@club-os/domain-core";
@@ -40,6 +42,7 @@ export function validateSlug(
 
 export class ContentService {
   private pages = new Map<string, ContentPage>();
+  resolveTemplate?: (key: string) => PageBlock[] | undefined;
 
   private findSlugConflict(
     slug: string,
@@ -66,6 +69,13 @@ export class ContentService {
     slug: string;
     body: string;
     organizationId: OrgId;
+    showInMenu?: boolean;
+    menuLocation?: string;
+    menuLabel?: string;
+    menuSortOrder?: number;
+    contentFormat?: ContentFormat;
+    blocks?: PageBlock[];
+    templateKey?: string;
   }): Result<ContentPage, string> {
     const slugResult = validateSlug(input.slug);
     if (!slugResult.ok) {
@@ -82,6 +92,26 @@ export class ContentService {
       return err("A page with this slug already exists in this organization");
     }
 
+    // Determine content format and blocks
+    let contentFormat: ContentFormat = input.contentFormat ?? "legacy_markdown";
+    let blocks: PageBlock[] | undefined = input.blocks;
+
+    // Template instantiation: regenerate block IDs
+    if (input.templateKey && !blocks) {
+      const templateBlocks = this.resolveTemplate?.(input.templateKey);
+      if (templateBlocks) {
+        blocks = templateBlocks.map((b) => ({
+          ...b,
+          id: crypto.randomUUID(),
+        }));
+        contentFormat = "blocks_v1";
+      }
+    }
+
+    if (blocks && blocks.length > 0) {
+      contentFormat = "blocks_v1";
+    }
+
     const now = new Date().toISOString();
     const page: ContentPage = {
       id: contentPageId(crypto.randomUUID()),
@@ -92,6 +122,12 @@ export class ContentService {
         slug: input.slug,
         body: input.body,
         updatedAt: now,
+        showInMenu: input.showInMenu,
+        menuLocation: input.menuLocation,
+        menuLabel: input.menuLabel,
+        menuSortOrder: input.menuSortOrder,
+        contentFormat,
+        blocks,
       },
       published: null,
       createdAt: now,
@@ -126,7 +162,17 @@ export class ContentService {
   updateDraft(
     id: ContentPageId,
     organizationId: OrgId,
-    input: { title?: string; slug?: string; body?: string },
+    input: {
+      title?: string;
+      slug?: string;
+      body?: string;
+      showInMenu?: boolean;
+      menuLocation?: string;
+      menuLabel?: string;
+      menuSortOrder?: number;
+      contentFormat?: ContentFormat;
+      blocks?: PageBlock[];
+    },
   ): Result<ContentPage, string> {
     const page = this.pages.get(id);
     if (!page) {
@@ -162,6 +208,12 @@ export class ContentService {
         slug: newSlug,
         body: input.body ?? page.draft.body,
         updatedAt: now,
+        showInMenu: input.showInMenu !== undefined ? input.showInMenu : page.draft.showInMenu,
+        menuLocation: input.menuLocation !== undefined ? input.menuLocation : page.draft.menuLocation,
+        menuLabel: input.menuLabel !== undefined ? input.menuLabel : page.draft.menuLabel,
+        menuSortOrder: input.menuSortOrder !== undefined ? input.menuSortOrder : page.draft.menuSortOrder,
+        contentFormat: input.contentFormat ?? page.draft.contentFormat,
+        blocks: input.blocks !== undefined ? input.blocks : page.draft.blocks,
       },
       updatedAt: now,
       version: page.version + 1,
@@ -197,6 +249,8 @@ export class ContentService {
         slug: page.draft.slug,
         body: page.draft.body,
         publishedAt: now,
+        contentFormat: page.draft.contentFormat,
+        blocks: page.draft.blocks ? structuredClone(page.draft.blocks) : undefined,
       },
       updatedAt: now,
       version: page.version + 1,

@@ -22,6 +22,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@club-os/domain-core':
+        specifier: workspace:*
+        version: link:../../packages/domain-core
+      '@club-os/ui-kit':
+        specifier: workspace:*
+        version: link:../../packages/ui-kit
       next:
         specifier: ^15.2.0
         version: 15.5.12(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -86,9 +92,21 @@ importers:
 
   packages/ui-kit:
     devDependencies:
+      '@club-os/domain-core':
+        specifier: workspace:*
+        version: link:../domain-core
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@25.3.0)(jsdom@28.1.0)(tsx@4.21.0)
 
   services/api:
     dependencies:
@@ -98,6 +116,9 @@ importers:
       '@club-os/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain-core
+      '@club-os/ui-kit':
+        specifier: workspace:*
+        version: link:../../packages/ui-kit
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.12.1)

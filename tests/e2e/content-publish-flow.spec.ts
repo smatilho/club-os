@@ -71,7 +71,7 @@ test.describe("content publish flow", () => {
 
     // 5. Publish
     await page.getByRole("button", { name: "Publish" }).click();
-    await expect(page.getByText("Page published successfully")).toBeVisible({
+    await expect(page.getByText("Published successfully")).toBeVisible({
       timeout: 10_000,
     });
 

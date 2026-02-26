@@ -2,33 +2,46 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  spacing,
+  fontSize,
+  fontWeight,
+  fontFamily,
+  adminTheme,
+  radii,
+  PAGE_TEMPLATES,
+} from "@club-os/ui-kit";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "0.625rem 0.75rem",
-  fontSize: "0.875rem",
-  fontFamily: "inherit",
-  backgroundColor: "#1e1e1e",
-  border: "1px solid #333",
-  borderRadius: "4px",
-  color: "#e0ddd5",
+  padding: `${spacing.sm} ${spacing.sm}`,
+  fontSize: fontSize.base,
+  fontFamily: fontFamily.sans,
+  backgroundColor: adminTheme.bg,
+  border: `1px solid ${adminTheme.border}`,
+  borderRadius: radii.sm,
+  color: adminTheme.text,
   outline: "none",
   boxSizing: "border-box",
 };
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  fontSize: "0.75rem",
-  fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-  fontWeight: 500,
-  color: "#888",
+  fontSize: fontSize.xs,
+  fontFamily: fontFamily.mono,
+  fontWeight: fontWeight.medium,
+  color: adminTheme.textMuted,
   letterSpacing: "0.04em",
   textTransform: "uppercase",
-  marginBottom: "0.375rem",
+  marginBottom: spacing.xs,
 };
+
+type CreateMode = "template" | "blank";
 
 export default function NewContentPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<CreateMode | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [body, setBody] = useState("");
@@ -41,10 +54,16 @@ export default function NewContentPage() {
     setSaving(true);
 
     try {
+      const payload: Record<string, unknown> = { title, slug, body };
+      if (mode === "template" && selectedTemplate) {
+        payload.templateKey = selectedTemplate;
+        payload.contentFormat = "blocks_v1";
+      }
+
       const res = await fetch("/api/cms/content/pages", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, slug, body }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
@@ -77,45 +96,172 @@ export default function NewContentPage() {
       .replace(/^-|-$/g, "");
   }
 
+  // Step 1: Choose mode
+  if (mode === null) {
+    return (
+      <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
+        <div style={{ marginBottom: spacing.xl }}>
+          <a
+            href="/admin/content"
+            style={{ color: adminTheme.textDim, textDecoration: "none", fontSize: fontSize.sm }}
+          >
+            Content Pages
+          </a>
+          <span style={{ color: adminTheme.textDim, margin: `0 ${spacing.sm}` }}>/</span>
+          <span style={{ color: adminTheme.textMuted, fontSize: fontSize.sm }}>New</span>
+        </div>
+
+        <h1 style={{ fontSize: fontSize["2xl"], fontWeight: fontWeight.semibold, margin: `0 0 ${spacing.lg}`, color: adminTheme.text }}>
+          Create Page
+        </h1>
+
+        <p style={{ color: adminTheme.textMuted, fontSize: fontSize.base, marginBottom: spacing.xl }}>
+          Choose how to start your new page.
+        </p>
+
+        <div style={{ display: "flex", gap: spacing.md }}>
+          <button
+            onClick={() => setMode("template")}
+            style={{
+              flex: 1,
+              padding: spacing.lg,
+              backgroundColor: adminTheme.surface,
+              border: `1px solid ${adminTheme.border}`,
+              borderRadius: radii.md,
+              color: adminTheme.text,
+              cursor: "pointer",
+              textAlign: "left",
+              fontFamily: fontFamily.sans,
+            }}
+          >
+            <div style={{ fontWeight: fontWeight.semibold, fontSize: fontSize.md, marginBottom: spacing.xs }}>
+              Start from Template
+            </div>
+            <div style={{ fontSize: fontSize.sm, color: adminTheme.textMuted }}>
+              Choose a pre-built layout with blocks
+            </div>
+          </button>
+          <button
+            onClick={() => setMode("blank")}
+            style={{
+              flex: 1,
+              padding: spacing.lg,
+              backgroundColor: adminTheme.surface,
+              border: `1px solid ${adminTheme.border}`,
+              borderRadius: radii.md,
+              color: adminTheme.text,
+              cursor: "pointer",
+              textAlign: "left",
+              fontFamily: fontFamily.sans,
+            }}
+          >
+            <div style={{ fontWeight: fontWeight.semibold, fontSize: fontSize.md, marginBottom: spacing.xs }}>
+              Blank Markdown
+            </div>
+            <div style={{ fontSize: fontSize.sm, color: adminTheme.textMuted }}>
+              Start with a simple text editor
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2 (template): Choose template
+  if (mode === "template" && !selectedTemplate) {
+    return (
+      <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
+        <div style={{ marginBottom: spacing.xl }}>
+          <button
+            onClick={() => setMode(null)}
+            style={{
+              background: "none",
+              border: "none",
+              color: adminTheme.textDim,
+              cursor: "pointer",
+              fontSize: fontSize.sm,
+              fontFamily: fontFamily.sans,
+              padding: 0,
+            }}
+          >
+            Back
+          </button>
+        </div>
+
+        <h1 style={{ fontSize: fontSize["2xl"], fontWeight: fontWeight.semibold, margin: `0 0 ${spacing.lg}`, color: adminTheme.text }}>
+          Choose a Template
+        </h1>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: spacing.sm }}>
+          {PAGE_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.key}
+              onClick={() => {
+                setSelectedTemplate(tpl.key);
+                if (!title) {
+                  setTitle(tpl.name.replace(" Page", ""));
+                  setSlug(toSlug(tpl.name.replace(" Page", "")));
+                }
+              }}
+              style={{
+                padding: spacing.md,
+                backgroundColor: adminTheme.surface,
+                border: `1px solid ${adminTheme.border}`,
+                borderRadius: radii.sm,
+                color: adminTheme.text,
+                cursor: "pointer",
+                textAlign: "left",
+                fontFamily: fontFamily.sans,
+              }}
+            >
+              <div style={{ fontWeight: fontWeight.semibold, fontSize: fontSize.base }}>
+                {tpl.name}
+              </div>
+              <div style={{ fontSize: fontSize.sm, color: adminTheme.textMuted, marginTop: spacing.xs }}>
+                {tpl.description} ({tpl.blocks.length} blocks)
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Step 3: Title/slug form + create
   return (
     <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
-      <div style={{ marginBottom: "2rem" }}>
+      <div style={{ marginBottom: spacing.xl }}>
         <a
           href="/admin/content"
-          style={{
-            color: "#666",
-            textDecoration: "none",
-            fontSize: "0.8125rem",
-          }}
+          style={{ color: adminTheme.textDim, textDecoration: "none", fontSize: fontSize.sm }}
         >
           Content Pages
         </a>
-        <span style={{ color: "#444", margin: "0 0.5rem" }}>/</span>
-        <span style={{ color: "#888", fontSize: "0.8125rem" }}>New</span>
+        <span style={{ color: adminTheme.textDim, margin: `0 ${spacing.sm}` }}>/</span>
+        <span style={{ color: adminTheme.textMuted, fontSize: fontSize.sm }}>New</span>
       </div>
 
-      <h1
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: 600,
-          margin: "0 0 1.5rem",
-          color: "#e0ddd5",
-        }}
-      >
+      <h1 style={{ fontSize: fontSize["2xl"], fontWeight: fontWeight.semibold, margin: `0 0 ${spacing.lg}`, color: adminTheme.text }}>
         Create Page
       </h1>
+
+      {selectedTemplate && (
+        <div style={{ marginBottom: spacing.md, fontSize: fontSize.sm, color: adminTheme.textMuted }}>
+          Template: {PAGE_TEMPLATES.find((t) => t.key === selectedTemplate)?.name}
+        </div>
+      )}
 
       {error && (
         <div
           role="alert"
           style={{
-            padding: "0.75rem 1rem",
+            padding: `${spacing.sm} ${spacing.md}`,
             backgroundColor: "rgba(220,60,60,0.08)",
             border: "1px solid rgba(220,60,60,0.2)",
-            borderRadius: "4px",
-            color: "#dc3c3c",
-            fontSize: "0.8125rem",
-            marginBottom: "1rem",
+            borderRadius: radii.sm,
+            color: adminTheme.error,
+            fontSize: fontSize.sm,
+            marginBottom: spacing.md,
           }}
         >
           {error}
@@ -125,19 +271,17 @@ export default function NewContentPage() {
       <form onSubmit={handleSubmit}>
         <div
           style={{
-            backgroundColor: "#161616",
-            borderRadius: "6px",
-            border: "1px solid #2a2a2a",
-            padding: "1.5rem",
+            backgroundColor: adminTheme.surface,
+            borderRadius: radii.md,
+            border: `1px solid ${adminTheme.border}`,
+            padding: spacing.lg,
             display: "flex",
             flexDirection: "column",
-            gap: "1.25rem",
+            gap: spacing.md,
           }}
         >
           <div>
-            <label htmlFor="title" style={labelStyle}>
-              Title
-            </label>
+            <label htmlFor="title" style={labelStyle}>Title</label>
             <input
               id="title"
               type="text"
@@ -150,17 +294,9 @@ export default function NewContentPage() {
           </div>
 
           <div>
-            <label htmlFor="slug" style={labelStyle}>
-              Slug
-            </label>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span
-                style={{
-                  color: "#555",
-                  fontSize: "0.875rem",
-                  fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-                }}
-              >
+            <label htmlFor="slug" style={labelStyle}>Slug</label>
+            <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
+              <span style={{ color: adminTheme.textDim, fontSize: fontSize.base, fontFamily: fontFamily.mono }}>
                 /public/
               </span>
               <input
@@ -170,51 +306,36 @@ export default function NewContentPage() {
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="page-slug"
                 required
-                style={{
-                  ...inputStyle,
-                  fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-                  fontSize: "0.8125rem",
-                }}
+                style={{ ...inputStyle, fontFamily: fontFamily.mono, fontSize: fontSize.sm }}
               />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="body" style={labelStyle}>
-              Content
-            </label>
-            <textarea
-              id="body"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Page content (markdown supported)"
-              rows={12}
-              style={{
-                ...inputStyle,
-                resize: "vertical",
-                lineHeight: 1.6,
-              }}
-            />
-          </div>
+          {mode === "blank" && (
+            <div>
+              <label htmlFor="body" style={labelStyle}>Content</label>
+              <textarea
+                id="body"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Page content (markdown supported)"
+                rows={12}
+                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+              />
+            </div>
+          )}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "0.75rem",
-            marginTop: "1.25rem",
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: spacing.sm, marginTop: spacing.md }}>
           <a
             href="/admin/content"
             style={{
-              padding: "0.5rem 1rem",
-              fontSize: "0.8125rem",
-              color: "#888",
+              padding: `${spacing.xs} ${spacing.md}`,
+              fontSize: fontSize.sm,
+              color: adminTheme.textMuted,
               textDecoration: "none",
-              border: "1px solid #333",
-              borderRadius: "4px",
+              border: `1px solid ${adminTheme.border}`,
+              borderRadius: radii.sm,
               display: "inline-flex",
               alignItems: "center",
             }}
@@ -225,13 +346,13 @@ export default function NewContentPage() {
             type="submit"
             disabled={saving}
             style={{
-              padding: "0.5rem 1.25rem",
-              fontSize: "0.8125rem",
-              fontWeight: 500,
-              color: "#0d0d0d",
-              backgroundColor: saving ? "#8a7340" : "#c8a55a",
+              padding: `${spacing.xs} ${spacing.md}`,
+              fontSize: fontSize.sm,
+              fontWeight: fontWeight.medium,
+              color: adminTheme.bg,
+              backgroundColor: saving ? "#8a7340" : adminTheme.accent,
               border: "none",
-              borderRadius: "4px",
+              borderRadius: radii.sm,
               cursor: saving ? "not-allowed" : "pointer",
               opacity: saving ? 0.7 : 1,
             }}

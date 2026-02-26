@@ -20,6 +20,8 @@ export type Capability =
   | "events.publish"
   | "events.manage"
   | "notifications.read"
+  | "navigation.read"
+  | "navigation.write"
   | "settings.read"
   | "settings.manage"
   | "audit.read";

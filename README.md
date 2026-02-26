@@ -22,6 +22,15 @@ This is now a runnable web/API starter with in-memory services and a fake paymen
 - Secure by design: RBAC, auditability, and policy checks at API boundaries.
 - OSS-friendly: clear contracts, good docs, and low contributor friction.
 
+## Example Implementation (Built with Club OS)
+Below is an example branded tenant implementation direction (Sterling Ski Club) showing the kind of public and member experience Club OS is intended to support through theming, templates, and module composition.
+
+### Public Landing Experience
+![Example implementation public home](docs/images/readme/example-implementation-public-home.png)
+
+### Member Booking Experience
+![Example implementation member bookings](docs/images/readme/example-implementation-member-bookings.png)
+
 ## Architecture Snapshot
 - Monorepo: `apps/*`, `services/*`, `packages/*`.
 - Backend: modular monolith first, with clean seams for future extraction.

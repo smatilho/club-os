@@ -12,6 +12,7 @@ Permissions are scoped to `organization_id` unless marked `platform`.
 
 ## Capability Groups
 - `content.read`, `content.write`, `content.publish`
+- `navigation.read`, `navigation.write`
 - `membership.read`, `membership.manage`
 - `reservation.read`, `reservation.manage`, `reservation.override`
 - `finance.read`, `finance.manage`, `finance.refund`
@@ -20,11 +21,11 @@ Permissions are scoped to `organization_id` unless marked `platform`.
 - `audit.read`
 
 ## Baseline Mapping
-- `member`: content.read, community.read, reservation.read (own), membership.read (own)
+- `member`: content.read, navigation.read, community.read, reservation.read (own), membership.read (own)
 - `reservationist`: member + reservation.manage, reservation.override
 - `treasurer`: member + finance.read, finance.manage, finance.refund
-- `webmaster`: member + content.write, content.publish, settings.read
-- `org_admin`: all tenant capabilities including settings.manage and audit.read
+- `webmaster`: member + content.write, content.publish, navigation.write, settings.read
+- `org_admin`: all tenant capabilities including navigation.write, settings.manage and audit.read
 - `platform_admin`: platform-scoped org lifecycle + incident operations
 
 ## Enforcement

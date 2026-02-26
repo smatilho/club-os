@@ -1,6 +1,23 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getSession, hasCapability, isAuthenticated } from "../../lib/session";
+import { apiFetch } from "../../lib/api-client";
+import {
+  spacing,
+  fontSize,
+  fontWeight,
+  fontFamily,
+  adminTheme,
+  radii,
+} from "@club-os/ui-kit";
+
+interface NavMenuItem {
+  id: string;
+  label: string;
+  linkTarget: string;
+  parentId: string | null;
+  sortOrder: number;
+}
 
 const ADMIN_CAPABILITIES = [
   "membership.manage",
@@ -16,8 +33,30 @@ const ADMIN_CAPABILITIES = [
   "settings.manage",
   "content.write",
   "content.publish",
+  "navigation.write",
   "audit.read",
 ];
+
+const FALLBACK_NAV: { label: string; href: string }[] = [
+  { label: "Dashboard", href: "/admin" },
+  { label: "Content", href: "/admin/content" },
+  { label: "Navigation", href: "/admin/navigation" },
+  { label: "Branding", href: "/admin/settings/branding" },
+  { label: "Reports", href: "/admin/community/reports" },
+  { label: "Events", href: "/admin/events" },
+];
+
+async function getAdminNav(): Promise<NavMenuItem[]> {
+  try {
+    const result = await apiFetch<NavMenuItem[]>(
+      "/api/admin/navigation/menus/admin_primary",
+    );
+    if (result.ok && result.data.length > 0) return result.data;
+  } catch {
+    // API unavailable
+  }
+  return [];
+}
 
 export default async function AdminLayout({
   children,
@@ -37,119 +76,112 @@ export default async function AdminLayout({
     redirect("/member");
   }
 
+  const menuItems = await getAdminNav();
+  const navLinks =
+    menuItems.length > 0
+      ? menuItems
+          .filter((i) => !i.parentId)
+          .map((i) => ({ label: i.label, href: i.linkTarget }))
+      : FALLBACK_NAV;
+
   return (
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#0d0d0d",
-        color: "#e0ddd5",
-        fontFamily:
-          "'IBM Plex Sans', 'SF Pro Text', -apple-system, sans-serif",
+        backgroundColor: adminTheme.bg,
+        color: adminTheme.text,
+        fontFamily: fontFamily.sans,
       }}
     >
+      {/* Top bar */}
       <nav
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 2rem",
+          padding: `0 ${spacing.xl}`,
           height: "3.5rem",
-          backgroundColor: "#161616",
-          borderBottom: "1px solid #2a2a2a",
+          backgroundColor: adminTheme.surface,
+          borderBottom: `1px solid ${adminTheme.border}`,
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <span
+        <div style={{ display: "flex", alignItems: "center", gap: spacing.xl }}>
+          <a
+            href="/admin"
             style={{
-              fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-              fontWeight: 600,
-              fontSize: "0.8125rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "#c8a55a",
+              fontFamily: fontFamily.mono,
+              fontWeight: fontWeight.semibold,
+              fontSize: fontSize.sm,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
+              color: adminTheme.accent,
+              textDecoration: "none",
             }}
           >
-            Administration
-          </span>
+            Admin
+          </a>
+          <div
+            style={{
+              width: "1px",
+              height: "1.25rem",
+              backgroundColor: adminTheme.border,
+            }}
+          />
           <div
             style={{
               display: "flex",
-              gap: "0.25rem",
+              gap: spacing.xs,
             }}
           >
-            <a
-              href="/admin"
-              style={{
-                padding: "0.375rem 0.75rem",
-                fontSize: "0.8125rem",
-                color: "#999",
-                textDecoration: "none",
-                borderRadius: "4px",
-              }}
-            >
-              Dashboard
-            </a>
-            <a
-              href="/admin/content"
-              style={{
-                padding: "0.375rem 0.75rem",
-                fontSize: "0.8125rem",
-                color: "#999",
-                textDecoration: "none",
-                borderRadius: "4px",
-              }}
-            >
-              Content
-            </a>
-            <a
-              href="/admin/settings/branding"
-              style={{
-                padding: "0.375rem 0.75rem",
-                fontSize: "0.8125rem",
-                color: "#999",
-                textDecoration: "none",
-                borderRadius: "4px",
-              }}
-            >
-              Branding
-            </a>
-            <a
-              href="/admin/community/reports"
-              style={{
-                padding: "0.375rem 0.75rem",
-                fontSize: "0.8125rem",
-                color: "#999",
-                textDecoration: "none",
-                borderRadius: "4px",
-              }}
-            >
-              Reports
-            </a>
-            <a
-              href="/admin/events"
-              style={{
-                padding: "0.375rem 0.75rem",
-                fontSize: "0.8125rem",
-                color: "#999",
-                textDecoration: "none",
-                borderRadius: "4px",
-              }}
-            >
-              Events
-            </a>
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                style={{
+                  padding: `${spacing.xs} ${spacing.sm}`,
+                  fontSize: fontSize.sm,
+                  fontWeight: fontWeight.medium,
+                  color: adminTheme.textMuted,
+                  textDecoration: "none",
+                  borderRadius: radii.sm,
+                  transition: "background-color 150ms ease, color 150ms ease",
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-            fontSize: "0.75rem",
-            color: "#666",
-          }}
-        >
-          {session.userId} / {session.roles.join(", ")}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: spacing.md }}>
+          <a
+            href="/member"
+            style={{
+              fontSize: fontSize.xs,
+              color: adminTheme.textDim,
+              textDecoration: "none",
+              padding: `${spacing.xs} ${spacing.sm}`,
+              border: `1px solid ${adminTheme.border}`,
+              borderRadius: radii.sm,
+              fontWeight: fontWeight.medium,
+            }}
+          >
+            Member View
+          </a>
+          <span
+            style={{
+              fontFamily: fontFamily.mono,
+              fontSize: fontSize.xs,
+              color: adminTheme.textDim,
+            }}
+          >
+            {session.userId}
+          </span>
+        </div>
       </nav>
-      <main style={{ padding: "2rem" }}>{children}</main>
+      <main style={{ padding: spacing.xl }}>{children}</main>
     </div>
   );
 }

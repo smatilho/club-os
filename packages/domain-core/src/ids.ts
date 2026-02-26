@@ -10,6 +10,7 @@ export type ReservationId = string & { readonly __brand: "ReservationId" };
 export type PaymentTransactionId = string & {
   readonly __brand: "PaymentTransactionId";
 };
+export type MenuItemId = string & { readonly __brand: "MenuItemId" };
 
 export function orgId(id: string): OrgId {
   return id as OrgId;
@@ -41,4 +42,8 @@ export function reservationId(id: string): ReservationId {
 
 export function paymentTransactionId(id: string): PaymentTransactionId {
   return id as PaymentTransactionId;
+}
+
+export function menuItemId(id: string): MenuItemId {
+  return id as MenuItemId;
 }

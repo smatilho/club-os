@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0",
+  "name": "navigation",
+  "version": "0.1.0",
+  "displayName": "Navigation & Menus",
+  "description": "Menu management for public, member, and admin navigation",
+  "owner": "club-os",
+  "activation": {
+    "defaultEnabled": true,
+    "configSchema": ""
+  },
+  "routes": [
+    {
+      "app": "api",
+      "area": "public",
+      "path": "/api/navigation/menus/:location",
+      "visibility": "public"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/navigation/menus",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/navigation/menus/:location",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/navigation/menu-items",
+      "visibility": "management"
+    },
+    {
+      "app": "api",
+      "area": "admin",
+      "path": "/api/admin/navigation/menu-items/:id",
+      "visibility": "management"
+    },
+    {
+      "app": "web",
+      "area": "admin",
+      "path": "/admin/navigation",
+      "visibility": "management"
+    }
+  ],
+  "capabilities": [
+    "navigation.read",
+    "navigation.write"
+  ],
+  "events": [
+    {
+      "name": "navigation.menu-item.created",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "navigation.menu-item.updated",
+      "direction": "publishes",
+      "version": "0.1.0"
+    },
+    {
+      "name": "navigation.menu-item.deleted",
+      "direction": "publishes",
+      "version": "0.1.0"
+    }
+  ]
+}

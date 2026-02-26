@@ -60,6 +60,7 @@
 | admin  | `/admin/events`              | Events management list               | 4     |
 | admin  | `/admin/events/new`          | Create new event                     | 4     |
 | admin  | `/admin/events/[id]`         | Event detail + publish/cancel        | 4     |
+| admin  | `/admin/navigation`          | Navigation menu management           | 4.5   |
 
 ## API Routes (Phase 2)
 
@@ -133,3 +134,14 @@
 | GET    | `/api/admin/events/:id/rsvps`                     | required   | events.manage         |
 | GET    | `/api/notifications/my`                           | required   | notifications.read    |
 | POST   | `/api/notifications/:id/read`                     | required   | notifications.read    |
+
+## API Routes (Phase 4.5 — Navigation + Block CMS)
+
+| Method | Path                                              | Auth       | Capability            |
+|--------|---------------------------------------------------|------------|-----------------------|
+| GET    | `/api/navigation/menus/:location`                 | none       | —                     |
+| GET    | `/api/admin/navigation/menus`                     | required   | navigation.read       |
+| GET    | `/api/admin/navigation/menus/:location`           | required   | navigation.read       |
+| POST   | `/api/admin/navigation/menu-items`                | required   | navigation.write      |
+| PATCH  | `/api/admin/navigation/menu-items/:id`            | required   | navigation.write      |
+| DELETE | `/api/admin/navigation/menu-items/:id`            | required   | navigation.write      |

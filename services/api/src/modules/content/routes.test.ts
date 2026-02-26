@@ -8,7 +8,7 @@ const DEFAULT_ORG = "org-default";
 
 function createTestApp() {
   const app = new Hono();
-  contentRoutes(app, { auth: "mock", defaultOrgId: DEFAULT_ORG });
+  contentRoutes(app, { auth: "mock", defaultOrgId: DEFAULT_ORG, autoSeed: false });
   return app;
 }
 
@@ -473,6 +473,139 @@ describe("content routes", () => {
       });
       expect(auditWriter.entries).toHaveLength(1);
       expect(auditWriter.entries[0].decision.effect).toBe("deny");
+    });
+  });
+
+  describe("block-based content via routes", () => {
+    it("creates a page with blocks", async () => {
+      const res = await app.request("/api/content/pages", {
+        method: "POST",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Block Page",
+          slug: "block-page",
+          body: "",
+          contentFormat: "blocks_v1",
+          blocks: [
+            { id: "b1", type: "hero", props: { heading: "Welcome" } },
+          ],
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.data.draft.contentFormat).toBe("blocks_v1");
+      expect(body.data.draft.blocks).toHaveLength(1);
+      expect(body.data.draft.blocks[0].type).toBe("hero");
+    });
+
+    it("creates a page from template", async () => {
+      const res = await app.request("/api/content/pages", {
+        method: "POST",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Home Page",
+          slug: "home",
+          body: "",
+          templateKey: "home",
+          contentFormat: "blocks_v1",
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.data.draft.contentFormat).toBe("blocks_v1");
+      expect(body.data.draft.blocks.length).toBeGreaterThan(0);
+    });
+
+    it("updates blocks via PATCH", async () => {
+      const createRes = await app.request("/api/content/pages", {
+        method: "POST",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Editable Blocks",
+          slug: "editable-blocks",
+          body: "",
+          contentFormat: "blocks_v1",
+          blocks: [{ id: "b1", type: "hero", props: { heading: "V1" } }],
+        }),
+      });
+      const created = await createRes.json();
+      const pageId = created.data.id;
+
+      const res = await app.request(`/api/content/pages/${pageId}`, {
+        method: "PATCH",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          blocks: [
+            { id: "b1", type: "hero", props: { heading: "V2" } },
+            { id: "b2", type: "rich_text", props: { content: "New" } },
+          ],
+        }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.data.draft.blocks).toHaveLength(2);
+    });
+
+    it("publishes blocks and serves them publicly", async () => {
+      const createRes = await app.request("/api/content/pages", {
+        method: "POST",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Pub Blocks",
+          slug: "pub-blocks",
+          body: "",
+          contentFormat: "blocks_v1",
+          blocks: [{ id: "b1", type: "hero", props: { heading: "Live" } }],
+        }),
+      });
+      const created = await createRes.json();
+      const pageId = created.data.id;
+
+      await app.request(`/api/content/pages/${pageId}/publish`, {
+        method: "POST",
+        headers: mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+      });
+
+      const publicRes = await app.request("/api/content/public/pages/pub-blocks");
+      expect(publicRes.status).toBe(200);
+      const body = await publicRes.json();
+      expect(body.data.contentFormat).toBe("blocks_v1");
+      expect(body.data.blocks).toHaveLength(1);
+      expect(body.data.blocks[0].props.heading).toBe("Live");
+    });
+
+    it("response includes contentFormat for legacy pages", async () => {
+      const createRes = await app.request("/api/content/pages", {
+        method: "POST",
+        headers: {
+          ...mockHeaders("u1", DEFAULT_ORG, "webmaster"),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "Legacy",
+          slug: "legacy-format",
+          body: "markdown",
+        }),
+      });
+      expect(createRes.status).toBe(201);
+      const body = await createRes.json();
+      expect(body.data.draft.contentFormat).toBe("legacy_markdown");
+      expect(body.data.draft.blocks).toEqual([]);
     });
   });
 

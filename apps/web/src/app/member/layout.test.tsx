@@ -3,11 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionContext } from "../../lib/session";
 
-const { redirectMock, getSessionMock } = vi.hoisted(() => ({
+const { redirectMock, getSessionMock, apiFetchMock } = vi.hoisted(() => ({
   redirectMock: vi.fn((path: string) => {
     throw new Error(`NEXT_REDIRECT:${path}`);
   }),
   getSessionMock: vi.fn(),
+  apiFetchMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -24,12 +25,19 @@ vi.mock("../../lib/session", async () => {
   };
 });
 
+vi.mock("../../lib/api-client", () => ({
+  apiFetch: apiFetchMock,
+}));
+
 import MemberLayout from "./layout";
 
 describe("MemberLayout", () => {
   beforeEach(() => {
     redirectMock.mockClear();
     getSessionMock.mockReset();
+    apiFetchMock.mockReset();
+    // Default: nav returns empty
+    apiFetchMock.mockResolvedValue({ ok: true, data: [] });
   });
 
   it("redirects unauthenticated users to /public", async () => {
@@ -53,7 +61,7 @@ describe("MemberLayout", () => {
     const ui = await MemberLayout({ children: <div>Member Content</div> });
     render(ui);
 
-    expect(screen.getByText("Member Area")).toBeInTheDocument();
+    expect(screen.getByText("Member Portal")).toBeInTheDocument();
     expect(screen.getByText("user-123")).toBeInTheDocument();
     expect(screen.getByText("Member Content")).toBeInTheDocument();
   });

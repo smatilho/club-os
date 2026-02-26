@@ -334,6 +334,133 @@ describe("ContentService", () => {
     });
   });
 
+  describe("block-based content", () => {
+    it("creates a page with blocks_v1 format", () => {
+      const result = service.createPage({
+        title: "Block Page",
+        slug: "block-page",
+        body: "",
+        organizationId: ORG1,
+        contentFormat: "blocks_v1",
+        blocks: [
+          { id: "b1", type: "hero", props: { heading: "Welcome" } },
+          { id: "b2", type: "rich_text", props: { content: "Hello" } },
+        ],
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.draft.contentFormat).toBe("blocks_v1");
+      expect(result.value.draft.blocks).toHaveLength(2);
+      expect(result.value.draft.blocks![0].type).toBe("hero");
+    });
+
+    it("sets blocks_v1 format when blocks are provided even without explicit contentFormat", () => {
+      const result = service.createPage({
+        title: "Implicit Blocks",
+        slug: "implicit-blocks",
+        body: "",
+        organizationId: ORG1,
+        blocks: [{ id: "b1", type: "hero", props: { heading: "Hi" } }],
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.draft.contentFormat).toBe("blocks_v1");
+    });
+
+    it("instantiates template blocks with fresh IDs", () => {
+      service.resolveTemplate = (key: string) => {
+        if (key === "test-tpl") {
+          return [
+            { id: "tpl-1", type: "hero", props: { heading: "Template Hero" } },
+            { id: "tpl-2", type: "rich_text", props: { content: "Template text" } },
+          ];
+        }
+        return undefined;
+      };
+
+      const result = service.createPage({
+        title: "From Template",
+        slug: "from-template",
+        body: "",
+        organizationId: ORG1,
+        templateKey: "test-tpl",
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.draft.contentFormat).toBe("blocks_v1");
+      expect(result.value.draft.blocks).toHaveLength(2);
+      // IDs should be regenerated, not the template originals
+      expect(result.value.draft.blocks![0].id).not.toBe("tpl-1");
+      expect(result.value.draft.blocks![1].id).not.toBe("tpl-2");
+      // Props should be preserved
+      expect(result.value.draft.blocks![0].props.heading).toBe("Template Hero");
+    });
+
+    it("publishes blocks to snapshot via structuredClone", () => {
+      const result = service.createPage({
+        title: "Pub Blocks",
+        slug: "pub-blocks",
+        body: "",
+        organizationId: ORG1,
+        contentFormat: "blocks_v1",
+        blocks: [{ id: "b1", type: "hero", props: { heading: "Original" } }],
+      });
+      if (!result.ok) throw new Error("create failed");
+
+      const pubResult = service.publish(result.value.id, ORG1);
+      expect(pubResult.ok).toBe(true);
+      if (!pubResult.ok) return;
+      expect(pubResult.value.published!.contentFormat).toBe("blocks_v1");
+      expect(pubResult.value.published!.blocks).toHaveLength(1);
+      expect(pubResult.value.published!.blocks![0].props.heading).toBe("Original");
+
+      // Mutating draft blocks should not affect published
+      service.updateDraft(result.value.id, ORG1, {
+        blocks: [{ id: "b1", type: "hero", props: { heading: "Changed" } }],
+      });
+      const page = service.getPage(result.value.id, ORG1);
+      if (!page.ok) throw new Error("get failed");
+      expect(page.value.published!.blocks![0].props.heading).toBe("Original");
+      expect(page.value.draft.blocks![0].props.heading).toBe("Changed");
+    });
+
+    it("updates draft blocks", () => {
+      const result = service.createPage({
+        title: "Editable",
+        slug: "editable-blocks",
+        body: "",
+        organizationId: ORG1,
+        contentFormat: "blocks_v1",
+        blocks: [{ id: "b1", type: "hero", props: { heading: "V1" } }],
+      });
+      if (!result.ok) throw new Error("create failed");
+
+      const updated = service.updateDraft(result.value.id, ORG1, {
+        blocks: [
+          { id: "b1", type: "hero", props: { heading: "V2" } },
+          { id: "b2", type: "rich_text", props: { content: "New block" } },
+        ],
+      });
+      expect(updated.ok).toBe(true);
+      if (!updated.ok) return;
+      expect(updated.value.draft.blocks).toHaveLength(2);
+      expect(updated.value.draft.blocks![0].props.heading).toBe("V2");
+    });
+
+    it("defaults to legacy_markdown format when no blocks", () => {
+      const result = service.createPage({
+        title: "Legacy",
+        slug: "legacy-page",
+        body: "markdown content",
+        organizationId: ORG1,
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.draft.contentFormat).toBe("legacy_markdown");
+      expect(result.value.draft.blocks).toBeUndefined();
+    });
+  });
+
   describe("getPublishedBySlug", () => {
     it("returns published page by slug", () => {
       const createResult = service.createPage({

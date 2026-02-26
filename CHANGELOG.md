@@ -155,6 +155,57 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
   - Web tests (7 new): member reservation list/detail, admin reservation list/detail/actions, admin payments list, new booking flow.
   - Playwright E2E (6 new): member reservation page, booking page, admin reservation list, admin payment list, full API booking+cancel flow, admin override-create flow.
 
+### Phase 4.5 — CMS Productization + UX Integration
+- Idempotent site seeding: `seedDefaultSite()` creates Home/About/Contact pages from templates, publishes them, and creates `public_header` menu items. Safe for dev resets and bootstrap retries.
+  - `POST /api/content/seed` — capability-gated admin endpoint for explicit seed triggering.
+  - Auto-seeds on server startup for default org (dev/production), disabled in tests via `autoSeed: false`.
+- `/public` homepage resolution: fetches CMS page with slug `home` instead of static placeholder. Onboarding fallback with admin dashboard link when no homepage exists.
+- Playwright e2e tests: seeded homepage and nav discoverable without manual URL typing; webmaster workflow (create from template → publish → menu placement → verify in public nav).
+- `packages/domain-core`: `MenuItem`, `MenuLocation`, `MenuItemVisibility`, `MenuItemLinkType` types with branded `MenuItemId`.
+  - `ContentFormat` type (`legacy_markdown` | `blocks_v1`), `PageBlock` interface.
+  - `ContentPageDraft`/`ContentPagePublished` extended with `contentFormat`, `blocks`, and menu placement fields.
+- `packages/auth-rbac`: `navigation.read` and `navigation.write` capabilities.
+  - Member gets `navigation.read`; webmaster and org_admin get both.
+- `packages/ui-kit`: Design system package with React support.
+  - Token constants: `spacing`, `radii`, `fontFamily`, `fontSize`, `fontWeight`, `shadows`, `lineHeight`, `adminTheme`, `publicThemeDefaults`.
+  - Block registry: `registerBlock`, `getBlockDefinition`, `getAllBlockDefinitions` with 12 built-in block types.
+  - Block renderers: Hero, Rich Text, Callout, CTA, Card Grid, Feature List, Two Column, Image, FAQ, Stats, Section Heading, Divider, Unknown.
+  - Design system primitives: Container, Stack, Grid, Heading, Button (with size/accent variant), Card (with elevation), SectionWrapper (with background modes), Badge, Alert.
+  - `BlockRenderer` orchestrator component (public/admin mode).
+  - 6 page templates with production-quality default content: Home, About, Facilities, Membership/FAQ, Contact, Generic.
+- `services/api`: Navigation module (`/api/navigation/*`, `/api/admin/navigation/*`).
+  - `NavigationService`: Map-based in-memory store with CRUD, nesting, tenant isolation, content page upsert.
+  - Public menu endpoint filters by visibility and published content page status.
+  - Admin CRUD with `requireCapability` and `extractResource` for tenant-mismatch detection.
+  - Content→menu integration on publish: `upsertForContentPage` / `removeForContentPage`.
+  - Content API extended: `contentFormat`, `blocks`, `templateKey` on create; `blocks` on update; published snapshot includes blocks.
+  - Template instantiation regenerates block IDs with `crypto.randomUUID()`.
+- `apps/web`: Unified shells with menu-driven navigation.
+  - Public layout: sticky gradient header, dark footer with copyright, responsive centered nav, blocks handle own section spacing.
+  - Member layout: sticky header with brand link, app-like nav, "Public Site" quick link, centered content container.
+  - Admin layout: sticky dark nav bar with "Admin" brand, separator, "Member View" link, compact nav.
+  - `/admin/navigation`: menu management page (location tabs, CRUD, reorder).
+  - `/admin/content/new`: template picker with 3-step flow (choose mode → choose template → title/slug form).
+  - `/admin/content/[id]`: section-grouped editor (Page Settings, Content Blocks, Menu Placement), sticky action bar, prominent publish + "View Live" link.
+  - `/admin/content/[id]/block-editor.tsx`: block editor with numbered blocks, type badge, 2-column block picker, labeled preview panel, empty state.
+  - `/admin/content`: content list with menu status column.
+  - `/public/[...slug]`: block rendering for `blocks_v1` pages via `BlockRenderer`.
+- UX-1D Visual System Pass:
+  - Design tokens: added `shadows` (sm/md/lg/xl), `lineHeight` scale, `fontSize["5xl"]`, `fontWeight.extrabold`, `spacing["3xl"]`/`["4xl"]`, `adminTheme.surfaceRaised`/`borderHover`, expanded `publicThemeDefaults`.
+  - Block renderers upgraded: gradient-driven hero/CTA, elevated cards with shadows, responsive auto-fill grids, numbered feature list, lead paragraph treatment, extrabold stats, FAQ as white cards on alt background.
+  - Templates upgraded: richer block compositions (hero→stats→features→CTA), credible default copy, demo-ready out of box.
+  - Public shell: sticky header with gradient background + shadow, full dark footer with copyright, removed main padding (blocks handle spacing).
+  - Member shell: sticky header, app-like layout with centered content area, "Public Site" link, bold brand presence.
+  - Admin editor: SectionCard groupings with headers, sticky action bar, prominent publish/view-live actions, better block picker (2-column with type labels), preview panel with accent border.
+  - SSC-inspired patterns (conceptual): gradient-driven headers, shadow hierarchy for card depth, section background alternation, generous hero padding, uppercase stat labels, centered feature grids. Intentionally NOT copied: SSC-specific color palette (uses CSS variables), route assumptions, React Native patterns.
+- Docs: `cms-navigation-and-menus.md`, `cms-block-registry-and-page-builder.md`, updated route map, RBAC matrix, phase plan.
+- Tests: 467 total (8 ui-kit, 394 API, 57 web, 8 CI).
+  - Navigation service tests (21): CRUD, nesting, tenant isolation, upsert idempotency, sort order.
+  - Navigation route tests (18): auth, capability gating, public filtering, CRUD, tenant isolation.
+  - Block registry tests (8): registration, retrieval, field validation, default props coverage.
+  - Content service block tests (6): block create, template instantiation, publish snapshot, update.
+  - Content route block tests (5): create with blocks, template, PATCH blocks, publish+public serve, legacy format.
+
 ### Phase 4 — Community + Events + Notifications
 - `packages/domain-core`: `CommunityPost`, `CommunityComment`, `CommunityReport` entities with branded IDs.
   - `ModerationStatus`: visible, hidden, locked, deleted.

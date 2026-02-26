@@ -23,6 +23,7 @@ const MEMBER_CAPABILITIES: Capability[] = [
   "reservation.read",
   "membership.read",
   "events.read",
+  "navigation.read",
   "notifications.read",
 ];
 
@@ -43,6 +44,7 @@ export const ROLE_CAPABILITY_MAP: Record<Role, Capability[]> = {
     ...MEMBER_CAPABILITIES,
     "content.write",
     "content.publish",
+    "navigation.write",
     "settings.read",
   ],
   org_admin: [
@@ -66,6 +68,8 @@ export const ROLE_CAPABILITY_MAP: Record<Role, Capability[]> = {
     "events.write",
     "events.publish",
     "events.manage",
+    "navigation.read",
+    "navigation.write",
     "notifications.read",
     "settings.read",
     "settings.manage",

@@ -14,6 +14,7 @@
   "dependencies": {
     "@club-os/auth-rbac": "workspace:*",
     "@club-os/domain-core": "workspace:*",
+    "@club-os/ui-kit": "workspace:*",
     "@hono/node-server": "^1.19.9",
     "hono": "^4.7.0"
   },

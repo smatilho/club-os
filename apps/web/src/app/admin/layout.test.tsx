@@ -3,11 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionContext } from "../../lib/session";
 
-const { redirectMock, getSessionMock } = vi.hoisted(() => ({
+const { redirectMock, getSessionMock, apiFetchMock } = vi.hoisted(() => ({
   redirectMock: vi.fn((path: string) => {
     throw new Error(`NEXT_REDIRECT:${path}`);
   }),
   getSessionMock: vi.fn(),
+  apiFetchMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -24,12 +25,19 @@ vi.mock("../../lib/session", async () => {
   };
 });
 
+vi.mock("../../lib/api-client", () => ({
+  apiFetch: apiFetchMock,
+}));
+
 import AdminLayout from "./layout";
 
 describe("AdminLayout", () => {
   beforeEach(() => {
     redirectMock.mockClear();
     getSessionMock.mockReset();
+    apiFetchMock.mockReset();
+    // Default: nav returns empty
+    apiFetchMock.mockResolvedValue({ ok: true, data: [] });
   });
 
   it("redirects unauthenticated users to /public", async () => {
@@ -68,7 +76,7 @@ describe("AdminLayout", () => {
     const ui = await AdminLayout({ children: <div>Admin Content</div> });
     render(ui);
 
-    expect(screen.getByText("Administration")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText(/admin-1/)).toBeInTheDocument();
     expect(screen.getByText("Admin Content")).toBeInTheDocument();
   });

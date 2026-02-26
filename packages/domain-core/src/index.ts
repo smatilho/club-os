@@ -9,3 +9,4 @@ export * from "./payment";
 export * from "./community";
 export * from "./event";
 export * from "./notification";
+export * from "./navigation";

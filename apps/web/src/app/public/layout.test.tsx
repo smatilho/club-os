@@ -12,22 +12,39 @@ vi.mock("../../lib/api-client", () => ({
 
 import PublicLayout from "./layout";
 
+function mockTheme(overrides: Record<string, unknown> = {}) {
+  return {
+    ok: true,
+    data: {
+      brandName: "Test Club",
+      logoUrl: null,
+      primaryColor: "#112233",
+      accentColor: "#445566",
+      surfaceColor: "#ffffff",
+      textColor: "#000000",
+      ...overrides,
+    },
+  };
+}
+
+function mockNav(items: unknown[] = []) {
+  return { ok: true, data: items };
+}
+
 describe("PublicLayout", () => {
   beforeEach(() => {
     publicApiFetchMock.mockReset();
+    // Default: theme returns fallback-like, nav returns empty
+    publicApiFetchMock.mockImplementation((path: string) => {
+      if (path.includes("/api/navigation/")) return Promise.resolve(mockNav());
+      return Promise.resolve(mockTheme());
+    });
   });
 
   it("renders brand name from theme", async () => {
-    publicApiFetchMock.mockResolvedValue({
-      ok: true,
-      data: {
-        brandName: "Test Club",
-        logoUrl: null,
-        primaryColor: "#112233",
-        accentColor: "#445566",
-        surfaceColor: "#ffffff",
-        textColor: "#000000",
-      },
+    publicApiFetchMock.mockImplementation((path: string) => {
+      if (path.includes("/api/navigation/")) return Promise.resolve(mockNav());
+      return Promise.resolve(mockTheme({ brandName: "Test Club" }));
     });
 
     const ui = await PublicLayout({
@@ -35,21 +52,24 @@ describe("PublicLayout", () => {
     });
     render(ui);
 
-    expect(screen.getByText("Test Club")).toBeInTheDocument();
+    // Brand name appears in both header and footer
+    const matches = screen.getAllByText("Test Club");
+    expect(matches.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Child Content")).toBeInTheDocument();
   });
 
   it("applies CSS variables from theme", async () => {
-    publicApiFetchMock.mockResolvedValue({
-      ok: true,
-      data: {
-        brandName: "Styled Club",
-        logoUrl: null,
-        primaryColor: "#aabbcc",
-        accentColor: "#ddeeff",
-        surfaceColor: "#f0f0f0",
-        textColor: "#111111",
-      },
+    publicApiFetchMock.mockImplementation((path: string) => {
+      if (path.includes("/api/navigation/")) return Promise.resolve(mockNav());
+      return Promise.resolve(
+        mockTheme({
+          brandName: "Styled Club",
+          primaryColor: "#aabbcc",
+          accentColor: "#ddeeff",
+          surfaceColor: "#f0f0f0",
+          textColor: "#111111",
+        }),
+      );
     });
 
     const ui = await PublicLayout({
@@ -73,21 +93,21 @@ describe("PublicLayout", () => {
     });
     render(ui);
 
-    expect(screen.getByText("Club OS")).toBeInTheDocument();
+    // "Club OS" appears in header and footer; check at least one exists
+    const matches = screen.getAllByText("Club OS");
+    expect(matches.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Fallback Content")).toBeInTheDocument();
   });
 
   it("renders logo when logoUrl is provided", async () => {
-    publicApiFetchMock.mockResolvedValue({
-      ok: true,
-      data: {
-        brandName: "Logo Club",
-        logoUrl: "https://example.com/logo.png",
-        primaryColor: "#112233",
-        accentColor: "#445566",
-        surfaceColor: "#ffffff",
-        textColor: "#000000",
-      },
+    publicApiFetchMock.mockImplementation((path: string) => {
+      if (path.includes("/api/navigation/")) return Promise.resolve(mockNav());
+      return Promise.resolve(
+        mockTheme({
+          brandName: "Logo Club",
+          logoUrl: "https://example.com/logo.png",
+        }),
+      );
     });
 
     const ui = await PublicLayout({
@@ -98,5 +118,31 @@ describe("PublicLayout", () => {
     const logo = screen.getByAltText("Logo Club logo");
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute("src", "https://example.com/logo.png");
+  });
+
+  it("renders header nav items from API", async () => {
+    publicApiFetchMock.mockImplementation((path: string) => {
+      if (path.includes("public_header"))
+        return Promise.resolve(
+          mockNav([
+            {
+              id: "1",
+              label: "About",
+              linkTarget: "/public/about",
+              parentId: null,
+              sortOrder: 0,
+            },
+          ]),
+        );
+      if (path.includes("/api/navigation/")) return Promise.resolve(mockNav());
+      return Promise.resolve(mockTheme());
+    });
+
+    const ui = await PublicLayout({
+      children: <div>Content</div>,
+    });
+    render(ui);
+
+    expect(screen.getByText("About")).toBeInTheDocument();
   });
 });

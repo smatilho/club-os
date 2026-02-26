@@ -1,4 +1,12 @@
 import { apiFetch } from "../../../lib/api-client";
+import {
+  spacing,
+  fontSize,
+  fontWeight,
+  fontFamily,
+  adminTheme,
+  radii,
+} from "@club-os/ui-kit";
 
 interface ContentPageSummary {
   id: string;
@@ -10,6 +18,8 @@ interface ContentPageSummary {
   publishedAt: string | null;
   updatedAt: string;
   version: number;
+  showInMenu?: boolean;
+  menuLocation?: string | null;
 }
 
 function StatusBadge({ status }: { status: "draft" | "published" }) {
@@ -18,19 +28,42 @@ function StatusBadge({ status }: { status: "draft" | "published" }) {
     <span
       style={{
         display: "inline-block",
-        padding: "0.125rem 0.5rem",
-        fontSize: "0.6875rem",
-        fontFamily: "'IBM Plex Mono', 'SF Mono', monospace",
-        fontWeight: 500,
+        padding: `2px ${spacing.sm}`,
+        fontSize: fontSize.xs,
+        fontFamily: fontFamily.mono,
+        fontWeight: fontWeight.medium,
         letterSpacing: "0.04em",
         textTransform: "uppercase",
-        borderRadius: "2px",
+        borderRadius: radii.sm,
         backgroundColor: isDraft ? "rgba(200,165,90,0.12)" : "rgba(80,180,100,0.12)",
-        color: isDraft ? "#c8a55a" : "#50b464",
+        color: isDraft ? adminTheme.accent : adminTheme.success,
         border: `1px solid ${isDraft ? "rgba(200,165,90,0.25)" : "rgba(80,180,100,0.25)"}`,
       }}
     >
       {status}
+    </span>
+  );
+}
+
+function MenuBadge({ showInMenu, location }: { showInMenu?: boolean; location?: string | null }) {
+  if (!showInMenu) return <span style={{ color: adminTheme.textDim, fontSize: fontSize.xs }}>—</span>;
+  const label = location?.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Yes";
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: `2px ${spacing.sm}`,
+        fontSize: fontSize.xs,
+        fontFamily: fontFamily.mono,
+        fontWeight: fontWeight.medium,
+        letterSpacing: "0.04em",
+        borderRadius: radii.sm,
+        backgroundColor: "rgba(100,160,220,0.12)",
+        color: "#64a0dc",
+        border: "1px solid rgba(100,160,220,0.25)",
+      }}
+    >
+      {label}
     </span>
   );
 }
@@ -52,34 +85,29 @@ export default async function ContentListPage() {
     error = "Unable to connect to API";
   }
 
+  const thStyle: React.CSSProperties = {
+    textAlign: "left",
+    padding: `${spacing.sm} ${spacing.md}`,
+    fontFamily: fontFamily.mono,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: adminTheme.textDim,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+  };
+
+  const tdStyle: React.CSSProperties = {
+    padding: `${spacing.sm} ${spacing.md}`,
+  };
+
   return (
     <div style={{ maxWidth: "64rem", margin: "0 auto" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "2rem",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: spacing["2xl"] }}>
         <div>
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 600,
-              margin: 0,
-              color: "#e0ddd5",
-            }}
-          >
+          <h1 style={{ fontSize: fontSize["2xl"], fontWeight: fontWeight.semibold, margin: 0, color: adminTheme.text }}>
             Content Pages
           </h1>
-          <p
-            style={{
-              fontSize: "0.8125rem",
-              color: "#666",
-              margin: "0.25rem 0 0",
-            }}
-          >
+          <p style={{ fontSize: fontSize.sm, color: adminTheme.textDim, margin: `${spacing.xs} 0 0` }}>
             {pages.length} page{pages.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -88,14 +116,14 @@ export default async function ContentListPage() {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "0.375rem",
-            padding: "0.5rem 1rem",
-            fontSize: "0.8125rem",
-            fontWeight: 500,
-            color: "#0d0d0d",
-            backgroundColor: "#c8a55a",
+            gap: spacing.xs,
+            padding: `${spacing.xs} ${spacing.md}`,
+            fontSize: fontSize.sm,
+            fontWeight: fontWeight.medium,
+            color: adminTheme.bg,
+            backgroundColor: adminTheme.accent,
             border: "none",
-            borderRadius: "4px",
+            borderRadius: radii.sm,
             textDecoration: "none",
             cursor: "pointer",
           }}
@@ -105,122 +133,63 @@ export default async function ContentListPage() {
       </div>
 
       {error && (
-        <div
-          style={{
-            padding: "0.75rem 1rem",
-            backgroundColor: "rgba(220,60,60,0.08)",
-            border: "1px solid rgba(220,60,60,0.2)",
-            borderRadius: "4px",
-            color: "#dc3c3c",
-            fontSize: "0.8125rem",
-            marginBottom: "1rem",
-          }}
-        >
+        <div style={{
+          padding: `${spacing.sm} ${spacing.md}`,
+          backgroundColor: "rgba(220,60,60,0.08)",
+          border: "1px solid rgba(220,60,60,0.2)",
+          borderRadius: radii.sm,
+          color: adminTheme.error,
+          fontSize: fontSize.sm,
+          marginBottom: spacing.md,
+        }}>
           {error}
         </div>
       )}
 
       {pages.length === 0 && !error ? (
-        <div
-          style={{
-            padding: "3rem",
-            textAlign: "center",
-            backgroundColor: "#161616",
-            borderRadius: "6px",
-            border: "1px solid #2a2a2a",
-          }}
-        >
-          <p style={{ color: "#666", fontSize: "0.875rem", margin: 0 }}>
+        <div style={{
+          padding: spacing["2xl"],
+          textAlign: "center",
+          backgroundColor: adminTheme.surface,
+          borderRadius: radii.md,
+          border: `1px solid ${adminTheme.border}`,
+        }}>
+          <p style={{ color: adminTheme.textDim, fontSize: fontSize.base, margin: 0 }}>
             No content pages yet. Create your first page to get started.
           </p>
         </div>
       ) : (
-        <div
-          style={{
-            backgroundColor: "#161616",
-            borderRadius: "6px",
-            border: "1px solid #2a2a2a",
-            overflow: "hidden",
-          }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "0.8125rem",
-            }}
-          >
+        <div style={{
+          backgroundColor: adminTheme.surface,
+          borderRadius: radii.md,
+          border: `1px solid ${adminTheme.border}`,
+          overflow: "hidden",
+        }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: fontSize.sm }}>
             <thead>
-              <tr
-                style={{
-                  borderBottom: "1px solid #2a2a2a",
-                }}
-              >
-                {["Title", "Slug", "Status", "Updated", ""].map(
-                  (header) => (
-                    <th
-                      key={header || "actions"}
-                      style={{
-                        textAlign: "left",
-                        padding: "0.75rem 1rem",
-                        fontFamily:
-                          "'IBM Plex Mono', 'SF Mono', monospace",
-                        fontSize: "0.6875rem",
-                        fontWeight: 500,
-                        color: "#666",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {header}
-                    </th>
-                  ),
-                )}
+              <tr style={{ borderBottom: `1px solid ${adminTheme.border}` }}>
+                <th style={thStyle}>Title</th>
+                <th style={thStyle}>Slug</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Menu</th>
+                <th style={thStyle}>Updated</th>
+                <th style={thStyle}></th>
               </tr>
             </thead>
             <tbody>
               {pages.map((page) => (
-                <tr
-                  key={page.id}
-                  style={{ borderBottom: "1px solid #1e1e1e" }}
-                >
-                  <td style={{ padding: "0.75rem 1rem", fontWeight: 500 }}>
-                    {page.title}
-                  </td>
-                  <td
-                    style={{
-                      padding: "0.75rem 1rem",
-                      fontFamily:
-                        "'IBM Plex Mono', 'SF Mono', monospace",
-                      fontSize: "0.75rem",
-                      color: "#888",
-                    }}
-                  >
+                <tr key={page.id} style={{ borderBottom: "1px solid #1e1e1e" }}>
+                  <td style={{ ...tdStyle, fontWeight: fontWeight.medium }}>{page.title}</td>
+                  <td style={{ ...tdStyle, fontFamily: fontFamily.mono, fontSize: fontSize.xs, color: adminTheme.textMuted }}>
                     /{page.slug}
                   </td>
-                  <td style={{ padding: "0.75rem 1rem" }}>
-                    <StatusBadge status={page.status} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "0.75rem 1rem",
-                      color: "#666",
-                      fontSize: "0.75rem",
-                    }}
-                  >
+                  <td style={tdStyle}><StatusBadge status={page.status} /></td>
+                  <td style={tdStyle}><MenuBadge showInMenu={page.showInMenu} location={page.menuLocation} /></td>
+                  <td style={{ ...tdStyle, color: adminTheme.textDim, fontSize: fontSize.xs }}>
                     {new Date(page.updatedAt).toLocaleDateString()}
                   </td>
-                  <td
-                    style={{ padding: "0.75rem 1rem", textAlign: "right" }}
-                  >
-                    <a
-                      href={`/admin/content/${page.id}`}
-                      style={{
-                        color: "#c8a55a",
-                        textDecoration: "none",
-                        fontSize: "0.8125rem",
-                      }}
-                    >
+                  <td style={{ ...tdStyle, textAlign: "right" }}>
+                    <a href={`/admin/content/${page.id}`} style={{ color: adminTheme.accent, textDecoration: "none", fontSize: fontSize.sm }}>
                       Edit
                     </a>
                   </td>
