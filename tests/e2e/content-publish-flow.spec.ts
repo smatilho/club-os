@@ -37,8 +37,13 @@ const WEBMASTER_SESSION: MockSession = {
 test.describe("content publish flow", () => {
   test("create, edit, publish, verify public, edit draft without re-publish", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await addMockSessionCookie(page, WEBMASTER_SESSION);
+    const unique = `${testInfo.workerIndex}-${Date.now()}`;
+    const pageTitle = `Club History ${unique}`;
+    const pageSlug = `about/history-${unique}`;
+    const publishedBody = "Our club was founded in 1920. We have a rich history.";
+    const draftOnlyBody = "This is a secret draft edit not yet published.";
 
     // 1. Navigate to create page
     await page.goto("/admin/content/new");
@@ -46,10 +51,11 @@ test.describe("content publish flow", () => {
       page.getByRole("heading", { name: "Create Page" }),
     ).toBeVisible();
 
-    // 2. Fill create form with slug about/history
-    await page.getByLabel("Title").fill("Club History");
+    // 2. Choose blank markdown mode, then fill create form
+    await page.getByRole("button", { name: "Blank Markdown" }).click();
+    await page.getByLabel("Title").fill(pageTitle);
     await page.getByLabel("Slug").clear();
-    await page.getByLabel("Slug").fill("about/history");
+    await page.getByLabel("Slug").fill(pageSlug);
     await page.getByLabel("Content").fill("Our club was founded in 1920.");
     await page.getByRole("button", { name: "Create Page" }).click();
 
@@ -62,10 +68,10 @@ test.describe("content publish flow", () => {
     ).toBeVisible({ timeout: 10_000 });
 
     // 4. Edit draft content
-    await page.getByLabel("Content").clear();
+    await page.locator("#body").clear();
     await page
-      .getByLabel("Content")
-      .fill("Our club was founded in 1920. We have a rich history.");
+      .locator("#body")
+      .fill(publishedBody);
     await page.getByRole("button", { name: "Save Draft" }).click();
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 10_000 });
 
@@ -76,44 +82,37 @@ test.describe("content publish flow", () => {
     });
 
     // 6. Navigate to public page and verify published content
-    await page.goto("/public/about/history");
-    await expect(page.getByText("Club History")).toBeVisible({
+    await page.goto(`/public/${pageSlug}`);
+    await expect(page.getByText(pageTitle)).toBeVisible({
       timeout: 10_000,
     });
-    await expect(
-      page.getByText(
-        "Our club was founded in 1920. We have a rich history.",
-      ),
-    ).toBeVisible();
+    await expect(page.getByText(publishedBody)).toBeVisible();
 
     // 7. Go back to edit, change draft without publishing
     await addMockSessionCookie(page, WEBMASTER_SESSION);
     await page.goto("/admin/content");
-    await expect(page.getByText("Club History")).toBeVisible({
+    await expect(page.getByText(pageTitle)).toBeVisible({
       timeout: 10_000,
     });
 
-    // Click edit link
-    await page.getByRole("link", { name: "Edit" }).click();
+    // Click edit link for the page created by this test
+    const row = page.locator("tr", { hasText: pageTitle });
+    await row.getByRole("link", { name: "Edit" }).click();
     await expect(
       page.getByRole("heading", { name: "Edit Page" }),
     ).toBeVisible({ timeout: 10_000 });
 
     // Edit draft only (no publish)
-    await page.getByLabel("Content").clear();
+    await page.locator("#body").clear();
     await page
-      .getByLabel("Content")
-      .fill("This is a secret draft edit not yet published.");
+      .locator("#body")
+      .fill(draftOnlyBody);
     await page.getByRole("button", { name: "Save Draft" }).click();
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 10_000 });
 
     // 8. Verify public page still shows old published content
-    await page.goto("/public/about/history");
-    await expect(
-      page.getByText(
-        "Our club was founded in 1920. We have a rich history.",
-      ),
-    ).toBeVisible({ timeout: 10_000 });
+    await page.goto(`/public/${pageSlug}`);
+    await expect(page.getByText(publishedBody)).toBeVisible({ timeout: 10_000 });
   });
 
   test("public page returns 404 for unpublished content", async ({

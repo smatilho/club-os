@@ -23,9 +23,7 @@ test.describe("web route guards", () => {
   test("root redirects to /public", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/public$/);
-    await expect(
-      page.getByRole("heading", { name: "Welcome to Club OS" }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Club OS" })).toBeVisible();
   });
 
   test("unauthenticated user is redirected from /member to /public", async ({ page }) => {

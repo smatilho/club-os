@@ -14,7 +14,7 @@ import {
   notificationRoutes,
   notificationService,
 } from "../modules/notifications/routes";
-import { navigationRoutes } from "../modules/navigation/routes";
+import { navigationRoutes, navigationService } from "../modules/navigation/routes";
 
 export interface ModuleDefinition {
   name: string;
@@ -36,7 +36,8 @@ const modules: ModuleDefinition[] = [
   {
     name: "content",
     version: "0.1.0",
-    register: contentRoutes,
+    register: (app: Hono) =>
+      contentRoutes(app, { navigationService }),
   },
   {
     name: "org-profile",
