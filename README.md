@@ -7,11 +7,14 @@ This repository is an architecture-first starter for building a generalized club
 - Member area: dues, reservations, social feed, events, account management.
 - Management area: CMS, financial operations, reservation operations, and administrative controls.
 
-## Status (Phases 0-3)
+## Status (Phases 0-5)
 - Phase 0: architecture/docs foundation and monorepo scaffolding complete.
 - Phase 1: identity, RBAC/capability policy enforcement, audit wiring, and admin/member/public route guards complete.
 - Phase 2: content CMS + public content rendering + tenant branding/theme complete.
 - Phase 3: reservations + payments (fake provider/idempotent workflow) + member/admin booking/payment UX complete.
+- Phase 4: community/events/notifications modules and route-area UX complete.
+- Phase 4.5: CMS productization (seeded pages, menu-driven shells, block registry/templates, webmaster flows) complete.
+- Phase 5 baseline: self-host Docker Compose, portability/release/deprecation docs, adapter guardrails, and cross-browser visual smoke CI complete.
 
 This is now a runnable web/API starter with in-memory services and a fake payment provider for development/testing.
 
@@ -77,16 +80,31 @@ Notes:
 - Admin/member API actions use mock-session forwarding in local/dev and Playwright tests.
 - Public content and theme tenant resolution currently uses a documented dev default org strategy (see docs).
 
+## Quick Start (Self-Host Baseline via Docker)
+1. Configure environment:
+   - `cp .env.example .env`
+2. Build and run:
+   - `docker compose up --build -d`
+3. Verify:
+   - `curl http://127.0.0.1:4100/api/health`
+4. Open:
+   - `http://127.0.0.1:3100/public`
+   - `http://127.0.0.1:3100/member`
+   - `http://127.0.0.1:3100/admin`
+5. Optional demo tenant seed:
+   - `CLUB_OS_API_BASE_URL=http://127.0.0.1:4100 CLUB_OS_DEMO_ORG_ID=org-demo corepack pnpm seed:demo-tenant`
+
 ## Verification / Test Commands
 - Full repo checks: `corepack pnpm check`
 - Web E2E (Playwright): `corepack pnpm test:web:e2e`
 - Install Playwright browser (first time): `corepack pnpm test:web:e2e:install`
+- Cross-browser visual smoke: `corepack pnpm test:web:e2e:smoke`
 
 ### Test Stack (Current)
 - Unit/integration: `Vitest` (API + packages + web)
 - Web UI behavior: `Vitest` + `React Testing Library`
 - Browser E2E: `Playwright` (route guards, CMS/public flows, reservation/payment flows)
-- CI: validate job + non-blocking `web-e2e-smoke` Playwright job
+- CI: validate job + Chromium full-flow e2e smoke + cross-browser visual smoke (`/public`, `/member`, `/admin`)
 
 ## Implementation Docs (Start Here for Architecture/Contrib)
 1. `/docs/architecture/blueprint.md`
@@ -96,11 +114,18 @@ Notes:
 5. `/docs/contracts/module-manifest.schema.json` (for new modules/manifests)
 6. `/docs/architecture/web-route-map.md`
 7. `/docs/architecture/feature-inventory.md`
+8. `/docs/operations/self-host-runbook.md`
+9. `/docs/operations/compatibility-matrix.md`
+10. `/docs/operations/upgrade-and-migration.md`
+11. `/docs/operations/deprecation-policy.md`
+12. `/docs/operations/release-process.md`
 
 ## Repository Layout
 - `/apps/web`: unified web experience with `/public`, `/member`, and `/admin` route areas.
 - `/apps/mobile`: reserved for future mobile clients and generated app templates.
 - `/services/api`: Club OS backend (modular monolith).
+- `/docker`: self-host baseline container images.
+- `/docker-compose.yml`: baseline self-host orchestration.
 - `/packages/domain-core`: shared domain entities and value objects.
 - `/packages/auth-rbac`: authorization contracts, policy checks, and capability helpers.
 - `/packages/module-registry`: module manifest parser/validator and runtime registry.
@@ -120,8 +145,8 @@ Notes:
 - `SUPPORT.md`: support expectations and channels.
 
 ## Current Status
-- Runnable web + API baseline implemented through Phase 3.
+- Runnable web + API baseline implemented through Phase 5 baseline scope.
 - Capability-based policy enforcement and audit logging are active at API boundaries.
 - Module manifests and feature inventory are in place for implemented backend modules.
 - Public content/CMS + branding/theme + reservations/payments flows are covered by unit/integration tests.
-- CI includes architecture guardrails, repo checks, and Playwright smoke coverage.
+- CI includes architecture guardrails, repo checks, Playwright flow smoke, and cross-browser visual smoke coverage.

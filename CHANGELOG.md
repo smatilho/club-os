@@ -2,259 +2,78 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
 ### Added
-- Initial open source foundation for Club OS.
-- Architecture blueprint and ADR set for:
-  - multi-tenant model
-  - modular monolith first
-  - unified web app route areas (`/public`, `/member`, `/admin`)
-  - RBAC and capability-based authorization
-  - deployment portability (managed + self-host/cloud profiles)
-- Module manifest and contract docs for feature inventory and extension boundaries.
-- Security and operations baselines:
-  - policy engine contract
-  - RBAC matrix
-  - reliability baseline (SLO/RTO/RPO targets)
-- Contribution and project policies:
-  - `CONTRIBUTING.md`
-  - `SECURITY.md`
-  - `SUPPORT.md`
-  - `LICENSE`
-- CI and architecture guardrails:
-  - required baseline file checks
-  - placeholder script checks
-  - provider-SDK boundary checks (allowed only in `infrastructure`)
-  - schema and documentation consistency tests
+- Open-source project foundation and governance baseline:
+  - `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`
+  - architecture blueprint and ADR set
+  - security and reliability baseline docs
+- Core CI/architecture guardrails:
+  - required-file checks
+  - placeholder-script checks
+  - module manifest/schema checks
+  - provider import boundary checks
+  - adapter boundary checks
+- Unified web route-area architecture:
+  - `/public/*`, `/member/*`, `/admin/*`
+  - route-area guards and baseline layouts
+- Modular API foundation with module loader and health endpoint.
+- Shared platform contracts and packages:
+  - `@club-os/domain-core`
+  - `@club-os/auth-rbac`
+  - `@club-os/module-registry`
+  - `@club-os/ui-kit`
+- Identity + RBAC + policy enforcement baseline:
+  - organizations, memberships, role assignment
+  - capability mapping and policy middleware
+  - audit writer baseline
+- Content CMS + public rendering:
+  - draft/publish lifecycle
+  - public published-page API
+  - admin content authoring routes/pages
+- Org branding/theme module and public theme endpoint.
+- Reservations + payments:
+  - inventory/holds/reservations state lifecycle
+  - payment provider abstraction and fake provider
+  - webhooks, refunds, idempotent workflows
+  - member/admin reservation and payment UI paths
+- Community + events + notifications modules:
+  - posts/comments/reports/moderation
+  - event lifecycle + RSVP/waitlist
+  - in-app/email notification dispatch and read-state
+- CMS productization + UX integration:
+  - menu/navigation domain and admin navigation management UI
+  - idempotent default public site seeding (Home/About/Contact)
+  - `/public` homepage resolution from seeded CMS content
+  - block-based page model (`blocks_v1`) and block registry
+  - page templates and block editor UX improvements
+  - unified public/member/admin shells driven by menu data
+- Phase 5 hardening baseline:
+  - self-host runtime artifacts (`docker-compose.yml`, Dockerfiles, `.env.example`)
+  - cross-browser visual smoke suite and snapshot baselines
+  - release workflow (`.github/workflows/release.yml`)
+  - demo tenant bootstrap script (`pnpm seed:demo-tenant`)
+  - operations docs:
+    - `docs/operations/self-host-runbook.md`
+    - `docs/operations/compatibility-matrix.md`
+    - `docs/operations/upgrade-and-migration.md`
+    - `docs/operations/deprecation-policy.md`
+    - `docs/operations/release-process.md`
+    - `docs/architecture/cloud-portability-reference.md`
 
-### Phase 0 — Foundation
-- `apps/web`: Next.js App Router with `/public`, `/member`, `/admin` route areas and per-area layouts.
-- `services/api`: Hono-based modular monolith skeleton with module loader, health module, and request context.
-- Platform abstraction ports: `DatabasePort`, `ObjectStoragePort`, `QueuePort`, `AuthClaimsPort`, `ObservabilityPort`.
-- `packages/domain-core`: `Result<T,E>` type, branded IDs (`OrgId`, `UserId`, `MembershipId`).
-- `packages/auth-rbac`: policy engine types and `evaluatePolicy` matching `policy-engine-contract.md`, `SessionContext`.
-- `packages/module-registry`: full-schema `validateModuleManifest`, `ModuleRegistry` class.
-- TypeScript typechecking enabled across all packages and services.
-- Vitest unit tests for domain-core, auth-rbac, module-registry, and API health endpoint (28 tests).
-- Web route map doc (`docs/architecture/web-route-map.md`).
+### Changed
+- README updated to reflect current implementation maturity and Phase 5 baseline workflows.
+- CI workflow expanded with cross-browser visual smoke job.
+- Next.js web runtime configured for standalone output to support self-host containers.
+- API runtime bootstrap now reads validated environment config (`PORT`, `CLUB_OS_DEFAULT_ORG_ID`, `CLUB_OS_AUTO_SEED`).
+- Deployment profile docs updated with direct links to self-host, compatibility, release, and migration docs.
+- Web and API route maps, feature inventory, and architecture docs expanded as modules shipped.
 
-### Phase 1 — Identity + RBAC + Organization
-- `packages/domain-core`: `User`, `Membership`, `RoleAssignment` entities with branded IDs and `MembershipStatus`.
-- `packages/auth-rbac`: RBAC seed role → capability mappings per RBAC matrix v1 (`ROLE_CAPABILITY_MAP`).
-  - `resolveCapabilities(roles)` deduplicates capabilities from multiple assigned roles.
-  - `AuditEntry` type and `AuditWriter` port interface for privileged action logging.
-  - `InMemoryAuditWriter` for development and testing.
-- `services/api`: Auth and policy middleware.
-  - `authMiddleware`: production-safe bearer-token entrypoint (real token verification via `AuthClaimsPort` in later phase).
-  - `mockAuthMiddleware`: separate local/test-only mock header session extraction with Bearer precedence over mock headers.
-  - `requireCapability(cap, resourceType)`: policy-enforcing middleware using `evaluatePolicy`, writes audit entries.
-  - `requireCapability(..., { extractResource })`: supports resource organization resolution so tenant-mismatch denies are policy-evaluated and audited centrally.
-  - Identity module (`/api/identity/*`): organization read, membership CRUD, role assignment/removal.
-  - Runtime request validation for identity membership/role payloads (rejects invalid role values and malformed JSON).
-  - Tenant isolation enforced at service and policy middleware layers (with tenant-mismatch deny auditing).
-- `apps/web`: Auth enforcement on route area layouts.
-  - `/member/*` layout: redirects unauthenticated users to `/public`.
-  - `/admin/*` layout: redirects users without management capability to `/member`, unauthenticated to `/public`.
-  - Server-side `getSession()` reads mock session from cookie (UX guard only; API enforces authz).
-- Web UI testing baseline:
-  - `apps/web` now runs `Vitest + React Testing Library` (route pages/layout guards).
-  - Root Playwright config + route-area auth-guard smoke specs (`pnpm test:web:e2e`).
-  - GitHub Actions Playwright smoke job added (non-blocking rollout, uploads artifacts on failure).
-- Tests: 100 total in `pnpm check` (7 web, 22 auth-rbac, 2 domain-core, 16 module-registry, 45 API, 8 CI guards).
-  - RBAC seed mapping tests (11 tests across all 6 roles).
-  - Audit writer tests (4 tests).
-  - Auth middleware tests (5 tests).
-  - Policy middleware tests (8 tests including audit logging).
-  - Identity service tests (15 tests including tenant isolation).
-  - Identity route tests (11 tests: auth, authz, audit logging, tenant role validation).
-  - Web route/page tests (7 tests via Vitest + React Testing Library).
-
-### Phase 2 — Content CMS + Public Area + Branding
-- `packages/domain-core`: `ContentPage`, `ContentPageDraft`, `ContentPagePublished` entities with branded `ContentPageId`.
-  - Slug validation: lowercase, `[a-z0-9-]+` segments, nested paths, reserved slug `index` disallowed.
-- `services/api`: Runnable Hono Node server (`server.ts` + `@hono/node-server`).
-  - Content module (`/api/content/*`): draft/publish lifecycle, public read, management CRUD.
-    - `POST /api/content/pages` (content.write), `PATCH /api/content/pages/:id` (content.write), `POST /api/content/pages/:id/publish` (content.publish).
-    - `GET /api/content/public/pages/:slugPath`: unauthenticated, serves published snapshot only, supports nested slugs.
-    - Publish copies current draft to published snapshot; post-publish draft edits do not affect public.
-    - Slug uniqueness enforced per organization (draft collision rejection).
-  - Org-profile module (`/api/org-profile/*`): tenant branding/theme storage.
-    - `GET /api/org-profile/theme` (settings.read), `PUT /api/org-profile/theme` (settings.manage).
-    - `GET /api/org-profile/public/theme`: unauthenticated, returns tenant theme for public layout.
-    - `ThemeSettings`: brandName, logoUrl, primaryColor, accentColor, surfaceColor, textColor with hex validation.
-  - Environment-aware auth handler (`getDefaultAuthHandler`): mock auth in dev/test, real auth in production.
-  - Content and org-profile module manifests (`manifest.json`) conforming to module-manifest.schema.json.
-  - Dev default org strategy for public endpoint tenant resolution (documented, Phase 3/5 hardening item).
-- `apps/web`: Public content rendering and admin CMS.
-  - `/public/[...slug]`: dynamic CMS content pages fetched from API, `notFound()` for unpublished.
-  - `/public` layout: applies tenant branding CSS variables (`--brand-primary`, `--brand-accent`, `--brand-surface`, `--brand-text`) from theme API with fallback defaults.
-  - `/admin/content`: page list with status badges, slug, updated time, create button.
-  - `/admin/content/new`: create form with auto-slug from title, validation error display.
-  - `/admin/content/[id]`: edit draft form, publish button, published metadata display, save/publish success feedback.
-  - `/admin/settings/branding`: theme form with color pickers, live preview block.
-  - Admin layout: dark utilitarian design with navigation links (Dashboard, Content, Branding).
-  - API proxy route (`/api/cms/[...path]`): server-side proxy forwarding mock session auth headers to backend API.
-  - Server-side API client (`lib/api-client.ts`): `apiFetch` (authenticated) and `publicApiFetch` (unauthenticated) with `no-store` caching.
-- Docs:
-  - `docs/architecture/public-caching-invalidation.md`: correctness-first caching strategy, Phase 3/5 optimization plan.
-  - `docs/architecture/web-route-map.md`: updated with all Phase 2 web and API routes.
-- Tests: 165 total in `pnpm check` (14 web, 22 auth-rbac, 2 domain-core, 16 module-registry, 103 API, 8 CI guards).
-  - Content service tests (26): create, slug validation, duplicate rejection, publish snapshot, post-publish draft isolation, tenant isolation (cross-org denied).
-  - Content route tests (22): public 404 for draft, public returns published, nested slug support, published snapshot stability, auth/authz enforcement, tenant isolation on detail/list, audit logging.
-  - Org-profile route tests (10): public theme read, management read/write authz, hex color validation, tenant isolation.
-  - Public layout tests (4): brand name rendering, CSS variable application, fallback theme, logo rendering.
-  - Public content page tests (3): published render, notFound for unpublished, correct API path from slug segments.
-- Playwright E2E: 8 tests (6 Phase 1 route guards + 2 Phase 2 content flow).
-  - Full publish lifecycle: create page, edit draft, publish, verify public render, edit draft without republish, confirm public still serves prior published content.
-  - Public 404 for unpublished/nonexistent content.
-
-### Phase 3 — Reservations + Payments
-- `packages/domain-core`: `ResourceUnit`, `ReservationHold`, `Reservation`, `PaymentTransaction` entities with branded IDs.
-  - `ReservationHoldStatus`: held, expired, released, consumed.
-  - `ReservationStatus`: held, payment_pending, confirmed, payment_failed, canceled.
-  - `PaymentTransactionStatus`: initiated, succeeded, failed, refunded.
-  - `Money` type (currency + amount in cents), `BookingMode`, `AvailabilityItem`.
-- `services/api`: Reservations module (`/api/reservations/*`).
-  - In-memory inventory + holds + reservations stores with overlap prevention.
-  - Hold lifecycle: 15-minute auto-expiry, release, consumption on reservation creation.
-  - Availability checking: considers active holds, confirmed/pending reservations; ignores canceled/expired.
-  - Reservation state machine: payment_pending → confirmed/payment_failed → canceled.
-  - Idempotent reservation creation via `idempotencyKey`.
-  - Own-access enforcement with management fallback on detail/cancel.
-  - Admin routes: `GET /api/admin/reservations`, override-confirm, override-create (bypasses hold requirement).
-  - Dev inventory auto-seeded on startup for default organization.
-- `services/api`: Payments module (`/api/payments/*`).
-  - `PaymentProvider` port interface with `FakePaymentProvider` (configurable success/failure).
-  - Idempotent payment initiation, webhook processing, and refund operations.
-  - `processReservationPayment`: integrated reservation+payment flow (auto-confirm on success, fail on decline).
-  - Webhook handler confirms reservation on external success notification.
-  - Member self-service transaction list and detail (own-access with management fallback).
-  - Admin refund route (`finance.refund` capability), admin payment list (`finance.read` capability).
-  - Dev/test helpers: fake webhook endpoint, admin fake-complete endpoint.
-- `docs/architecture/payment-failure-handling-matrix.md`: 6 failure scenarios with expected behavior, idempotency guarantees, and test coverage references.
-- `apps/web`: Member booking UI.
-  - `/member/reservations`: reservation list with status badges, currency formatting, "New Booking" link.
-  - `/member/reservations/new`: 4-step booking flow (dates → availability/select → confirm/pay → result).
-  - `/member/reservations/[id]`: reservation detail with status, dates, amount.
-- `apps/web`: Admin reservation & payment UI.
-  - `/admin/reservations`: reservation table with status badges, user, dates, amount (dark admin theme).
-  - `/admin/reservations/[id]`: reservation detail with admin actions (override confirm, cancel, refund).
-  - `/admin/payments`: payment transaction list with status badges and reservation links.
-  - `/admin/payments/[id]`: payment detail with refund action.
-- `docs/architecture/web-route-map.md`: updated with all Phase 3 web and API routes.
-- `docs/architecture/feature-inventory.md`: updated module status annotations.
-- Tests: 213 API tests, 36 web tests, 14 E2E tests.
-  - Reservation service tests (47): resource CRUD, availability (blocking by hold/reservation, non-blocking for canceled/expired), hold lifecycle, reservation state machine, idempotency, admin overrides, tenant isolation.
-  - Reservation route tests (28): availability, holds, reservations, admin routes, authz enforcement, tenant isolation, audit logging.
-  - Payment service tests (16): initiation, idempotency, webhooks (success/idempotent/unknown), refund (success/idempotent/reject), tenant isolation.
-  - Payment route tests (15): reservation+payment integration, member transactions, authz, webhooks, admin refund, audit logging.
-  - Web tests (7 new): member reservation list/detail, admin reservation list/detail/actions, admin payments list, new booking flow.
-  - Playwright E2E (6 new): member reservation page, booking page, admin reservation list, admin payment list, full API booking+cancel flow, admin override-create flow.
-
-### Phase 4.5 — CMS Productization + UX Integration
-- Idempotent site seeding: `seedDefaultSite()` creates Home/About/Contact pages from templates, publishes them, and creates `public_header` menu items. Safe for dev resets and bootstrap retries.
-  - `POST /api/content/seed` — capability-gated admin endpoint for explicit seed triggering.
-  - Auto-seeds on server startup for default org (dev/production), disabled in tests via `autoSeed: false`.
-- `/public` homepage resolution: fetches CMS page with slug `home` instead of static placeholder. Onboarding fallback with admin dashboard link when no homepage exists.
-- Playwright e2e tests: seeded homepage and nav discoverable without manual URL typing; webmaster workflow (create from template → publish → menu placement → verify in public nav).
-- `packages/domain-core`: `MenuItem`, `MenuLocation`, `MenuItemVisibility`, `MenuItemLinkType` types with branded `MenuItemId`.
-  - `ContentFormat` type (`legacy_markdown` | `blocks_v1`), `PageBlock` interface.
-  - `ContentPageDraft`/`ContentPagePublished` extended with `contentFormat`, `blocks`, and menu placement fields.
-- `packages/auth-rbac`: `navigation.read` and `navigation.write` capabilities.
-  - Member gets `navigation.read`; webmaster and org_admin get both.
-- `packages/ui-kit`: Design system package with React support.
-  - Token constants: `spacing`, `radii`, `fontFamily`, `fontSize`, `fontWeight`, `shadows`, `lineHeight`, `adminTheme`, `publicThemeDefaults`.
-  - Block registry: `registerBlock`, `getBlockDefinition`, `getAllBlockDefinitions` with 12 built-in block types.
-  - Block renderers: Hero, Rich Text, Callout, CTA, Card Grid, Feature List, Two Column, Image, FAQ, Stats, Section Heading, Divider, Unknown.
-  - Design system primitives: Container, Stack, Grid, Heading, Button (with size/accent variant), Card (with elevation), SectionWrapper (with background modes), Badge, Alert.
-  - `BlockRenderer` orchestrator component (public/admin mode).
-  - 6 page templates with production-quality default content: Home, About, Facilities, Membership/FAQ, Contact, Generic.
-- `services/api`: Navigation module (`/api/navigation/*`, `/api/admin/navigation/*`).
-  - `NavigationService`: Map-based in-memory store with CRUD, nesting, tenant isolation, content page upsert.
-  - Public menu endpoint filters by visibility and published content page status.
-  - Admin CRUD with `requireCapability` and `extractResource` for tenant-mismatch detection.
-  - Content→menu integration on publish: `upsertForContentPage` / `removeForContentPage`.
-  - Content API extended: `contentFormat`, `blocks`, `templateKey` on create; `blocks` on update; published snapshot includes blocks.
-  - Template instantiation regenerates block IDs with `crypto.randomUUID()`.
-- `apps/web`: Unified shells with menu-driven navigation.
-  - Public layout: sticky gradient header, dark footer with copyright, responsive centered nav, blocks handle own section spacing.
-  - Member layout: sticky header with brand link, app-like nav, "Public Site" quick link, centered content container.
-  - Admin layout: sticky dark nav bar with "Admin" brand, separator, "Member View" link, compact nav.
-  - `/admin/navigation`: menu management page (location tabs, CRUD, reorder).
-  - `/admin/content/new`: template picker with 3-step flow (choose mode → choose template → title/slug form).
-  - `/admin/content/[id]`: section-grouped editor (Page Settings, Content Blocks, Menu Placement), sticky action bar, prominent publish + "View Live" link.
-  - `/admin/content/[id]/block-editor.tsx`: block editor with numbered blocks, type badge, 2-column block picker, labeled preview panel, empty state.
-  - `/admin/content`: content list with menu status column.
-  - `/public/[...slug]`: block rendering for `blocks_v1` pages via `BlockRenderer`.
-- UX-1D Visual System Pass:
-  - Design tokens: added `shadows` (sm/md/lg/xl), `lineHeight` scale, `fontSize["5xl"]`, `fontWeight.extrabold`, `spacing["3xl"]`/`["4xl"]`, `adminTheme.surfaceRaised`/`borderHover`, expanded `publicThemeDefaults`.
-  - Block renderers upgraded: gradient-driven hero/CTA, elevated cards with shadows, responsive auto-fill grids, numbered feature list, lead paragraph treatment, extrabold stats, FAQ as white cards on alt background.
-  - Templates upgraded: richer block compositions (hero→stats→features→CTA), credible default copy, demo-ready out of box.
-  - Public shell: sticky header with gradient background + shadow, full dark footer with copyright, removed main padding (blocks handle spacing).
-  - Member shell: sticky header, app-like layout with centered content area, "Public Site" link, bold brand presence.
-  - Admin editor: SectionCard groupings with headers, sticky action bar, prominent publish/view-live actions, better block picker (2-column with type labels), preview panel with accent border.
-  - SSC-inspired patterns (conceptual): gradient-driven headers, shadow hierarchy for card depth, section background alternation, generous hero padding, uppercase stat labels, centered feature grids. Intentionally NOT copied: SSC-specific color palette (uses CSS variables), route assumptions, React Native patterns.
-- Docs: `cms-navigation-and-menus.md`, `cms-block-registry-and-page-builder.md`, updated route map, RBAC matrix, phase plan.
-- Tests: 467 total (8 ui-kit, 394 API, 57 web, 8 CI).
-  - Navigation service tests (21): CRUD, nesting, tenant isolation, upsert idempotency, sort order.
-  - Navigation route tests (18): auth, capability gating, public filtering, CRUD, tenant isolation.
-  - Block registry tests (8): registration, retrieval, field validation, default props coverage.
-  - Content service block tests (6): block create, template instantiation, publish snapshot, update.
-  - Content route block tests (5): create with blocks, template, PATCH blocks, publish+public serve, legacy format.
-
-### Phase 4 — Community + Events + Notifications
-- `packages/domain-core`: `CommunityPost`, `CommunityComment`, `CommunityReport` entities with branded IDs.
-  - `ModerationStatus`: visible, hidden, locked, deleted.
-  - `ReportStatus`: open, triaged, resolved, dismissed. `ReportReasonCode`: spam, abuse, harassment, unsafe, other.
-  - `ClubEvent`, `EventRSVP` entities with `EventStatus` (draft/published/canceled) and `RSVPStatus` (going/waitlist/canceled).
-  - `NotificationMessage` entity with `NotificationChannelKind` (in_app/email), `NotificationStatus`, `NotificationTopic`.
-- `packages/auth-rbac`: New capabilities added to RBAC matrix.
-  - Member: `community.write`, `community.comment`, `community.report`, `events.read`, `notifications.read`.
-  - Org admin: all community caps + `community.moderate`, all events caps (`events.write`, `events.publish`, `events.manage`).
-- `services/api`: Community module (`/api/community/*`, `/api/admin/community/*`).
-  - Post CRUD with tag normalization, author-only edit (moderator override).
-  - Comment CRUD with post status checks (blocked on hidden/locked/deleted posts).
-  - Report intake (validates reason code enum, verifies target exists in org).
-  - Report lifecycle: open → triaged → resolved/dismissed with mandatory audit logging.
-  - Moderation actions: hide/unhide/lock/unlock posts, hide/unhide comments.
-  - Report workflow notifications: reporter receipt + reporter outcome notifications (in-app; moderator fan-out deferred).
-  - Tenant isolation on all operations with `extractResource` for tenant-mismatch policy detection.
-- `services/api`: Events module (`/api/events/*`, `/api/admin/events/*`).
-  - Event lifecycle: create (draft) → publish → cancel.
-  - RSVP with capacity-aware waitlisting (no auto-promotion in Phase 4).
-  - Member event listing (published only), admin listing (all statuses).
-  - RSVP triggers in-app notification to event organizer.
-- `services/api`: Notifications module (`/api/notifications/*`).
-  - `NotificationChannel` interface with `InAppNotificationChannel` and `FakeEmailNotificationChannel`.
-  - `NotificationDispatcher`: fans out per channel, catches errors (channel failures don't break primary action).
-  - `NotificationService`: create, list (in_app only), mark-as-read with user+org scoping.
-- `docs/architecture/abuse-report-handling-workflow.md`: report intake, lifecycle, moderation actions, audit requirements, notification behavior, current limitations.
-- `apps/web`: Member community + events + notifications UI.
-  - `/member/community`: post feed with status badges, tags, relative timestamps.
-  - `/member/community/new`: create post form with tag input.
-  - `/member/community/posts/[id]`: post detail with comments, comment form, report buttons.
-  - `/member/events`: events list with RSVP status badges, date range formatting.
-  - `/member/events/[id]`: event detail with RSVP button (going/waitlist/cancel).
-  - `/member/notifications`: notification list with unread indicators, topic badges, mark-as-read.
-- `apps/web`: Admin community + events UI.
-  - `/admin/community/reports`: report table with status filter, reason codes, review links.
-  - `/admin/community/reports/[id]`: report detail with triage/resolve/dismiss + moderation actions.
-  - `/admin/events`: events table with status badges, RSVP counts, create button.
-  - `/admin/events/new`: create event form.
-  - `/admin/events/[id]`: event detail with publish/cancel actions, RSVP table.
-  - Admin nav updated with Reports and Events links.
-- `docs/architecture/web-route-map.md`: updated with all Phase 4 web and API routes.
-- `docs/architecture/feature-inventory.md`: updated module status annotations.
-- Tests: 335 API tests, 54 web tests, 8 CI guards.
-  - Community service tests (32): post CRUD, moderation actions, comment lifecycle, report workflow, tenant isolation.
-  - Community route tests (33): member post/comment/report routes, admin moderation routes, authz enforcement, tenant-mismatch audit, notification hooks, moderation visibility gates.
-  - Event service tests (20): create, validate, publish, cancel, RSVP lifecycle, capacity/waitlist, tenant isolation.
-  - Event route tests (16): admin CRUD/publish/cancel, member list/detail/RSVP, tenant isolation.
-  - Notification service tests (7): in-app/email creation, dispatch, list, mark-as-read, cross-user/cross-org deny, channel failure resilience.
-  - Notification route tests (5): list, auth, mark-as-read, cross-user deny, tenant-mismatch policy deny semantics.
-  - Web tests (17 new): community feed/events/notifications/admin reports/admin events pages.
-  - Playwright E2E (8 new): community moderation flow, event RSVP flow, notification flow (API-level + UI smoke).
+### Fixed
+- Multiple CI pipeline stabilization fixes across validation and e2e flows.
+- Hardened content auth behavior, slug publishing behavior, and CMS proxy interactions.
+- Playwright e2e reliability fixes for seeded-site/navigation and content publish flows.
+- Boundary guard coverage strengthened to prevent provider/adapters leakage outside intended layers.

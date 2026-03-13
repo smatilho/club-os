@@ -44,3 +44,11 @@ Required platform capabilities (provider-neutral):
 - Ship a self-host baseline with Docker Compose for local/proof environments.
 - Add IaC reference modules over time for AWS/GCP/Azure.
 - Avoid vendor-only features unless an equivalent fallback exists.
+
+## Phase 5 References
+- Self-host runbook: `/docs/operations/self-host-runbook.md`
+- Compatibility matrix: `/docs/operations/compatibility-matrix.md`
+- Cloud portability reference: `/docs/architecture/cloud-portability-reference.md`
+- Release process: `/docs/operations/release-process.md`
+- Upgrade/migration guide: `/docs/operations/upgrade-and-migration.md`
+- Deprecation policy: `/docs/operations/deprecation-policy.md`

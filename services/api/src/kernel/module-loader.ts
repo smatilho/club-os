@@ -15,12 +15,15 @@ import {
   notificationService,
 } from "../modules/notifications/routes";
 import { navigationRoutes, navigationService } from "../modules/navigation/routes";
+import { getApiRuntimeConfig } from "./runtime-config";
 
 export interface ModuleDefinition {
   name: string;
   version: string;
   register: (app: Hono) => void;
 }
+
+const runtimeConfig = getApiRuntimeConfig();
 
 const modules: ModuleDefinition[] = [
   {
@@ -37,18 +40,28 @@ const modules: ModuleDefinition[] = [
     name: "content",
     version: "0.1.0",
     register: (app: Hono) =>
-      contentRoutes(app, { navigationService }),
+      contentRoutes(app, {
+        navigationService,
+        defaultOrgId: runtimeConfig.defaultOrgId,
+        autoSeed: runtimeConfig.autoSeed,
+      }),
   },
   {
     name: "org-profile",
     version: "0.1.0",
-    register: orgProfileRoutes,
+    register: (app: Hono) =>
+      orgProfileRoutes(app, {
+        defaultOrgId: runtimeConfig.defaultOrgId,
+      }),
   },
   {
     name: "reservations",
     version: "0.1.0",
     register: (app: Hono) =>
-      reservationRoutes(app, { paymentHandler: processReservationPayment }),
+      reservationRoutes(app, {
+        paymentHandler: processReservationPayment,
+        defaultOrgId: runtimeConfig.defaultOrgId,
+      }),
   },
   {
     name: "payments",
@@ -75,7 +88,10 @@ const modules: ModuleDefinition[] = [
   {
     name: "navigation",
     version: "0.1.0",
-    register: navigationRoutes,
+    register: (app: Hono) =>
+      navigationRoutes(app, {
+        defaultOrgId: runtimeConfig.defaultOrgId,
+      }),
   },
 ];
 

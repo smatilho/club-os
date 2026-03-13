@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing git tag to release (for example v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Validate tag format
+        id: validate_tag
+        shell: bash
+        run: |
+          TAG_INPUT="${{ inputs.tag }}"
+          if [[ ! "${TAG_INPUT}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then
+            echo "Invalid tag '${TAG_INPUT}'. Expected format vMAJOR.MINOR.PATCH[-PRERELEASE]."
+            exit 1
+          fi
+          echo "tag=${TAG_INPUT}" >> "$GITHUB_OUTPUT"
+      - name: Verify tag exists
+        run: |
+          git fetch --tags --force
+          git rev-parse --verify --quiet "refs/tags/${{ steps.validate_tag.outputs.tag }}" >/dev/null
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.validate_tag.outputs.tag }}
+          generate_release_notes: true
