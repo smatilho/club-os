@@ -62,7 +62,10 @@ test("public route area visual baseline", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Club OS" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Welcome to Our Club" })).toBeVisible();
 
-  await expect(page).toHaveScreenshot("core-public-route.png");
+  // Public landing visuals pick up minor cross-platform font/rendering variance in CI.
+  await expect(page).toHaveScreenshot("core-public-route.png", {
+    maxDiffPixelRatio: 0.025,
+  });
 });
 
 test("member route area visual baseline", async ({ page }) => {
